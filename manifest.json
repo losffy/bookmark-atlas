@@ -1,0 +1,9 @@
+{
+  "id": "bookmark-atlas",
+  "name": "Bookmark Atlas",
+  "version": "0.1.0",
+  "minAppVersion": "1.6.0",
+  "description": "Import Chrome and Firefox bookmarks into curated Obsidian notes with search and atlas views.",
+  "author": "losffy",
+  "isDesktopOnly": true
+}

@@ -1,0 +1,5 @@
+node_modules/
+release/
+data.json
+*.log
+*.tsbuildinfo

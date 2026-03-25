@@ -1,0 +1,30 @@
+{
+  "checksum": "demo",
+  "roots": {
+    "bookmark_bar": {
+      "children": [
+        {
+          "date_added": "13345678901234567",
+          "name": "GitHub",
+          "type": "url",
+          "url": "https://github.com/"
+        },
+        {
+          "children": [
+            {
+              "date_added": "13345678901234568",
+              "name": "Obsidian Docs",
+              "type": "url",
+              "url": "https://docs.obsidian.md/"
+            }
+          ],
+          "date_added": "13345678901234566",
+          "name": "工具",
+          "type": "folder"
+        }
+      ],
+      "name": "Bookmarks bar",
+      "type": "folder"
+    }
+  }
+}

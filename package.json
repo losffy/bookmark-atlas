@@ -1,0 +1,40 @@
+{
+  "name": "bookmark-atlas",
+  "version": "0.1.0",
+  "description": "Import browser bookmarks into Obsidian with categorization, search, and curated notes.",
+  "main": "main.js",
+  "scripts": {
+    "build": "node esbuild.mjs production",
+    "dev": "node esbuild.mjs",
+    "refresh-previews": "node scripts/backfill-local-screenshots.mjs --existing-only",
+    "release": "npm run build && node scripts/build-release.mjs",
+    "smoke-test": "tsx test-fixtures/smoke-test.ts"
+  },
+  "keywords": [
+    "obsidian",
+    "bookmarks",
+    "plugin"
+  ],
+  "author": "losffy",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/losffy/bookmark-atlas.git"
+  },
+  "bugs": {
+    "url": "https://github.com/losffy/bookmark-atlas/issues"
+  },
+  "homepage": "https://github.com/losffy/bookmark-atlas",
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "esbuild": "^0.25.3",
+    "obsidian": "^1.8.10",
+    "tsx": "^4.20.5",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "node-html-parser": "^7.0.1",
+    "playwright": "^1.56.0"
+  }
+}
