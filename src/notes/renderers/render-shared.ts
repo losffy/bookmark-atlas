@@ -25,11 +25,7 @@ export function groupByCategory(records: BookmarkRecord[]): Array<[string, Bookm
     groups.set(key, list);
   }
   return Array.from(groups.entries())
-    .sort((left, right) => right[1].length - left[1].length || left[0].localeCompare(right[0], "zh-CN"))
-    .map(([category, categoryRecords]) => [
-      category,
-      [...categoryRecords].sort((left, right) => left.title.localeCompare(right.title, "zh-CN"))
-    ]);
+    .sort((left, right) => right[1].length - left[1].length || left[0].localeCompare(right[0], "zh-CN"));
 }
 
 export function buildDomainStats(records: BookmarkRecord[]): Map<string, number> {

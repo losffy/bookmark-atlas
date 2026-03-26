@@ -79,6 +79,9 @@ export class BookmarkAtlasView extends ItemView {
         rebuildIndexesCommand: () => this.plugin.rebuildIndexesCommand(),
         openRecordNote: (record) => this.plugin.openRecordNote(record),
         openExternalUrl: (url) => this.plugin.openExternalUrl(url),
+        resolveAssetUrl: (path) => this.plugin.app.vault.adapter.getResourcePath(path.replace(/\\/g, "/")),
+        updateRecordCategory: (recordId, category) => this.plugin.updateRecordCategory(recordId, category),
+        reorderRecords: (draggedRecordId, targetRecordId) => this.plugin.reorderRecords(draggedRecordId, targetRecordId),
         onSearchTermChange: (value) => {
           this.filterState.searchTerm = value;
           this.render();

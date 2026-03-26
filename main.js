@@ -33711,10 +33711,7 @@ function groupByCategory(records) {
     list.push(record);
     groups.set(key2, list);
   }
-  return Array.from(groups.entries()).sort((left, right) => right[1].length - left[1].length || left[0].localeCompare(right[0], "zh-CN")).map(([category, categoryRecords]) => [
-    category,
-    [...categoryRecords].sort((left, right) => left.title.localeCompare(right.title, "zh-CN"))
-  ]);
+  return Array.from(groups.entries()).sort((left, right) => right[1].length - left[1].length || left[0].localeCompare(right[0], "zh-CN"));
 }
 function buildDomainStats(records) {
   const stats = /* @__PURE__ */ new Map();
@@ -33794,18 +33791,12 @@ function formatPreviewSource(record) {
       return "\u672A\u6807\u8BB0";
   }
 }
-function inlinePill(value) {
-  return `\`${escapeMarkdown(value)}\``;
-}
 function toDetailRelativeAssetPath(assetPath) {
   const normalized = assetPath.replace(/\\/g, "/");
   const marker = "Bookmarks/";
   const index = normalized.indexOf(marker);
   const scoped = index >= 0 ? normalized.slice(index + marker.length) : normalized;
   return `../${scoped}`;
-}
-function escapeMarkdown(input) {
-  return input.replace(/[\\`*_{}\[\]()#+\-!|>]/g, "\\$&");
 }
 function escapeHtml(input) {
   return input.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
@@ -33925,93 +33916,161 @@ function renderAtlasNote(title, state) {
 // src/notes/renderers/detail-note-renderer.ts
 function renderDetailNote(record, _summaryNote, userNotes) {
   const frontmatter = buildDetailFrontmatter(record);
-  const heroLines = [
-    "> [!bookmark-hero] \u7AD9\u70B9\u5361\u7247",
-    ...record.favicon ? [`> ![56](${record.favicon})`] : [],
-    `> **${escapeMarkdown(record.siteName || record.title)}**`,
-    `> [\u6253\u5F00\u7F51\u7AD9](${record.url})`,
-    `> ${inlinePill(record.domain || "\u672A\u77E5\u57DF\u540D")} ${inlinePill(record.category || "\u672A\u5206\u7C7B")} ${inlinePill(`${record.sourceBrowser} / ${record.sourceFormat}`)}`,
-    ">",
-    `> ${escapeMarkdown(record.description)}`
-  ];
-  const previewLines = [
-    "## \u7F51\u7AD9\u9884\u89C8",
-    "",
-    ...record.previewAssetPath ?? record.screenshotPath ? [
-      `![\u7F51\u7AD9\u9884\u89C8](<${toDetailRelativeAssetPath(record.previewAssetPath ?? record.screenshotPath ?? "")}>)`,
-      "",
-      `_${escapeMarkdown(formatPreviewSource(record))}_`,
-      ""
-    ] : ["_\u672C\u5730\u9884\u89C8\u5C1A\u672A\u751F\u6210\u3002_"]
-  ];
-  const infoLines = [
-    "> [!bookmark-info] \u7F51\u7AD9\u4FE1\u606F",
-    `> - \u7AD9\u70B9\u6807\u9898\uFF1A${escapeMarkdown(record.title)}`,
-    `> - \u7AD9\u70B9\u540D\u79F0\uFF1A${escapeMarkdown(record.siteName || record.domain || "\u672A\u77E5")}`,
-    `> - \u6765\u6E90\u7AD9\u70B9\uFF1A${escapeMarkdown(record.domain || "\u672A\u77E5\u57DF\u540D")}`,
-    `> - \u52A0\u5165\u65F6\u95F4\uFF1A${escapeMarkdown(record.createdAt ? record.createdAt.slice(0, 10) : "\u672A\u77E5")}`,
-    `> - \u5BFC\u5165\u65F6\u95F4\uFF1A${escapeMarkdown(record.importedAt.slice(0, 16).replace("T", " "))}`,
-    `> - \u9884\u89C8\u6765\u6E90\uFF1A${escapeMarkdown(formatPreviewSource(record))}`
-  ];
-  const signalLines = [
-    "> [!bookmark-signals] \u8BBF\u95EE\u5224\u65AD",
-    `> - \u8BBF\u95EE\u72B6\u6001\uFF1A${escapeMarkdown(formatAvailability(record.availability))}`,
-    `> - \u8BBF\u95EE\u63D0\u793A\uFF1A${escapeMarkdown(formatAccessHint(record.accessHint))}`,
-    `> - \u5931\u6548\u98CE\u9669\uFF1A${escapeMarkdown(record.isLikelyDead ? "\u53EF\u80FD\u5931\u6548" : "\u6682\u672A\u53D1\u73B0\u5931\u6548")}`,
-    `> - \u5E7F\u544A\u98CE\u9669\uFF1A${escapeMarkdown(formatAdRisk(record.adRisk))}`
-  ];
-  const articleLines = buildArticleLines(record);
-  const tagLines = [
-    "> [!bookmark-tags] \u6807\u7B7E\u4E0E\u76EE\u5F55",
-    `> - \u6807\u7B7E\uFF1A${escapeMarkdown(record.tags.length > 0 ? record.tags.join("\u3001") : "\u6682\u65E0")}`,
-    `> - \u539F\u59CB\u76EE\u5F55\uFF1A${escapeMarkdown(record.folderPath.length > 0 ? record.folderPath.join(" / ") : "\u672A\u8BBE\u7F6E")}`
-  ];
+  const previewPath = record.previewAssetPath ?? record.screenshotPath;
+  const articleExcerpt = record.articleExcerpt || record.description || "\u6682\u672A\u63D0\u53D6\u5230\u53EF\u5C55\u793A\u7684\u7AD9\u70B9\u6458\u8981\u3002";
+  const heroSummary = record.description || articleExcerpt;
+  const domainLabel = formatDisplayUrl(record.url, record.domain || "\u672A\u77E5\u57DF\u540D");
+  const articleMeta = [
+    record.articleAuthor ? `<span class="bookmark-atlas-note-chip">${escapeHtml(record.articleAuthor)}</span>` : "",
+    record.articlePublishedAt ? `<span class="bookmark-atlas-note-chip is-muted">${escapeHtml(normalizePublishedAt(record.articlePublishedAt))}</span>` : "",
+    record.articleWordCount ? `<span class="bookmark-atlas-note-chip is-muted">${escapeHtml(String(record.articleWordCount))} \u5B57</span>` : ""
+  ].filter(Boolean).join("");
   return [
     "---",
     frontmatter,
     "---",
     "",
-    `# ${record.title}`,
+    '<div class="bookmark-atlas-bookmark">',
+    '<section class="bookmark-atlas-bookmark-hero">',
+    '<div class="bookmark-atlas-bookmark-hero-grid">',
+    '<div class="bookmark-atlas-bookmark-hero-copy-wrap">',
+    '<p class="bookmark-atlas-note-kicker">Research Card</p>',
+    `<div class="bookmark-atlas-bookmark-eyebrow">${escapeHtml(record.siteName || record.domain || "Web Resource")}</div>`,
+    `<h2 class="bookmark-atlas-bookmark-title">${escapeHtml(record.title)}</h2>`,
+    `<a href="${escapeHtmlAttribute(record.url)}" class="bookmark-atlas-bookmark-domain-link external-link" target="_blank" rel="noopener">${escapeHtml(domainLabel)}</a>`,
+    `<p class="bookmark-atlas-bookmark-copy bookmark-atlas-bookmark-summary">${escapeHtml(heroSummary)}</p>`,
+    `<div class="bookmark-atlas-note-chip-row">
+      <span class="bookmark-atlas-note-chip">${escapeHtml(record.domain || "\u672A\u77E5\u57DF\u540D")}</span>
+      <span class="bookmark-atlas-note-chip">${escapeHtml(record.category || "\u672A\u5206\u7C7B")}</span>
+      <span class="bookmark-atlas-note-chip is-muted">${escapeHtml(`${record.sourceBrowser} / ${record.sourceFormat}`)}</span>
+    </div>`,
+    '<div class="bookmark-atlas-bookmark-action-row">',
+    `<a href="${escapeHtmlAttribute(record.url)}" class="bookmark-atlas-bookmark-link external-link" target="_blank" rel="noopener">\u6253\u5F00\u539F\u7F51\u7AD9</a>`,
+    "</div>",
+    "</div>",
+    '<div class="bookmark-atlas-bookmark-hero-aside">',
+    '<div class="bookmark-atlas-bookmark-favicon-shell">',
+    buildFaviconMarkup(record),
+    "</div>",
+    '<div class="bookmark-atlas-bookmark-source-card">',
+    "<span>Source</span>",
+    `<strong>${escapeHtml(record.siteName || record.domain || "\u672A\u77E5\u7AD9\u70B9")}</strong>`,
+    `<p>${escapeHtml(record.url)}</p>`,
+    "</div>",
+    "</div>",
+    "</div>",
+    '<div class="bookmark-atlas-bookmark-status-dashboard">',
+    buildStatusMarkup("\u8BBF\u95EE\u72B6\u6001", formatAvailability(record.availability), "availability"),
+    buildStatusMarkup("\u8BBF\u95EE\u63D0\u793A", formatAccessHint(record.accessHint), "access"),
+    buildStatusMarkup("\u5931\u6548\u98CE\u9669", record.isLikelyDead ? "\u53EF\u80FD\u5931\u6548" : "\u6682\u672A\u53D1\u73B0\u5931\u6548", record.isLikelyDead ? "risk" : "healthy"),
+    buildStatusMarkup("\u5E7F\u544A\u98CE\u9669", formatAdRisk(record.adRisk), record.adRisk === "high" ? "risk" : record.adRisk === "medium" ? "watch" : "healthy"),
+    "</div>",
+    "</section>",
     "",
-    ...heroLines,
+    '<section class="bookmark-atlas-bookmark-grid">',
+    '<div class="bookmark-atlas-bookmark-panel">',
+    '<div class="bookmark-atlas-bookmark-section-head">',
+    "<p>Site Facts</p>",
+    "<h3>\u7AD9\u70B9\u4FE1\u606F</h3>",
+    "</div>",
+    '<div class="bookmark-atlas-bookmark-facts">',
+    buildFact("\u7AD9\u70B9\u6807\u9898", record.title),
+    buildFact("\u7AD9\u70B9\u540D\u79F0", record.siteName || record.domain || "\u672A\u77E5"),
+    buildFact("\u6765\u6E90\u7AD9\u70B9", record.domain || "\u672A\u77E5\u57DF\u540D"),
+    buildFact("\u52A0\u5165\u65F6\u95F4", record.createdAt ? record.createdAt.slice(0, 10) : "\u672A\u77E5"),
+    buildFact("\u5BFC\u5165\u65F6\u95F4", record.importedAt.slice(0, 16).replace("T", " ")),
+    buildFact("\u9884\u89C8\u6765\u6E90", formatPreviewSource(record)),
+    "</div>",
+    "</div>",
     "",
-    ...previewLines,
+    '<div class="bookmark-atlas-bookmark-panel bookmark-atlas-bookmark-story-panel">',
+    '<div class="bookmark-atlas-bookmark-section-head bookmark-atlas-bookmark-story-head">',
+    "<p>Reading Journey</p>",
+    "<h3>Visual Proof \xB7 Content Brief</h3>",
+    "</div>",
+    buildPreviewMarkup(previewPath),
+    `<div class="bookmark-atlas-bookmark-meta-strip">
+      <span>${escapeHtml(formatPreviewSource(record))}</span>
+      <span>${escapeHtml(record.domain || "\u672A\u77E5\u57DF\u540D")}</span>
+      <span>${escapeHtml(record.previewStatus === "fallback" ? "\u56DE\u9000\u9884\u89C8" : "\u771F\u5B9E\u9884\u89C8")}</span>
+    </div>`,
+    '<div class="bookmark-atlas-bookmark-story-copy">',
+    '<div class="bookmark-atlas-bookmark-section-head">',
+    "<p>Content Brief</p>",
+    "<h3>\u6B63\u6587\u63D0\u8981</h3>",
+    "</div>",
+    articleMeta ? `<div class="bookmark-atlas-note-chip-row">${articleMeta}</div>` : "",
+    `<div class="bookmark-atlas-bookmark-excerpt-box"><p class="bookmark-atlas-note-entry-copy">${escapeHtml(articleExcerpt)}</p></div>`,
+    "</div>",
+    "</div>",
+    "</section>",
     "",
-    ...infoLines,
+    '<section class="bookmark-atlas-note-panels">',
+    '<div class="bookmark-atlas-bookmark-panel">',
+    '<div class="bookmark-atlas-bookmark-section-head">',
+    "<p>Context</p>",
+    "<h3>\u6807\u7B7E\u4E0E\u76EE\u5F55</h3>",
+    "</div>",
+    record.tags.length > 0 ? `<div class="bookmark-atlas-note-tags">${record.tags.map((tag) => `<span class="bookmark-atlas-note-chip">${escapeHtml(tag)}</span>`).join("")}</div>` : '<p class="bookmark-atlas-note-empty-copy">\u6682\u65E0\u6807\u7B7E\u3002</p>',
+    record.folderPath.length > 0 ? `<p class="bookmark-atlas-note-folder">\u539F\u59CB\u76EE\u5F55\uFF1A${escapeHtml(record.folderPath.join(" / "))}</p>` : '<p class="bookmark-atlas-note-empty-copy">\u672A\u8BBE\u7F6E\u539F\u59CB\u76EE\u5F55\u3002</p>',
+    "</div>",
+    '<div class="bookmark-atlas-bookmark-panel bookmark-atlas-bookmark-trace-panel">',
+    '<div class="bookmark-atlas-bookmark-section-head">',
+    "<p>Capture Trail</p>",
+    "<h3>\u91C7\u96C6\u8F68\u8FF9</h3>",
+    "</div>",
+    '<div class="bookmark-atlas-bookmark-trace-list">',
+    buildTraceItem("\u6536\u85CF\u65F6\u95F4", record.createdAt ? record.createdAt.slice(0, 10) : "\u672A\u77E5"),
+    buildTraceItem("\u5BFC\u5165\u6279\u6B21", record.importedAt.slice(0, 16).replace("T", " ")),
+    buildTraceItem("\u6765\u6E90\u683C\u5F0F", `${record.sourceBrowser} / ${record.sourceFormat}`),
+    buildTraceItem("\u9884\u89C8\u72B6\u6001", record.previewStatus === "fallback" ? "\u56DE\u9000\u9884\u89C8" : "\u771F\u5B9E\u9884\u89C8"),
+    "</div>",
+    "</div>",
+    "</section>",
+    "</div>",
     "",
-    ...signalLines,
-    "",
-    ...articleLines,
-    "",
-    ...tagLines,
-    "",
+    ...record.articleMarkdown ? ["## \u89E3\u6790\u6B63\u6587", "", record.articleMarkdown.trim(), ""] : [],
     USER_NOTES_HEADING,
     "",
     userNotes || "_\u5728\u8FD9\u91CC\u8865\u5145\u4F60\u7684\u5224\u65AD\u3001\u7528\u9014\u3001\u6536\u85CF\u7406\u7531\u548C\u540E\u7EED\u52A8\u4F5C\u3002_",
     ""
   ].join("\n");
 }
-function buildArticleLines(record) {
-  if (!record.articleExcerpt && !record.articleMarkdown) {
+function buildFaviconMarkup(record) {
+  if (record.favicon) {
+    return `<img class="bookmark-atlas-bookmark-favicon" src="${escapeHtmlAttribute(record.favicon)}" alt="">`;
+  }
+  return `<div class="bookmark-atlas-bookmark-favicon bookmark-atlas-bookmark-favicon-fallback">${escapeHtml((record.domain || record.title || "?").slice(0, 1).toUpperCase())}</div>`;
+}
+function buildStatusMarkup(label, value, tone) {
+  return `<div class="bookmark-atlas-bookmark-status-card is-${escapeHtmlAttribute(tone)}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+}
+function buildFact(label, value) {
+  return `<div class="bookmark-atlas-bookmark-fact"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+}
+function buildTraceItem(label, value) {
+  return `<div class="bookmark-atlas-bookmark-trace-item"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+}
+function buildPreviewMarkup(previewPath) {
+  if (!previewPath) {
     return [
-      "> [!bookmark-content] \u6B63\u6587\u63D0\u8981",
-      "> - \u6682\u672A\u63D0\u53D6\u5230\u53EF\u7528\u6B63\u6587\u3002"
-    ];
+      '<div class="bookmark-atlas-bookmark-preview-fallback">',
+      "<span>BA</span>",
+      "<p>\u672C\u5730\u9884\u89C8\u5C1A\u672A\u751F\u6210\u3002\u540E\u7EED\u91CD\u540C\u6B65\u65F6\u4F1A\u91CD\u65B0\u5C1D\u8BD5\u622A\u56FE\u6216\u751F\u6210\u7AD9\u70B9\u9884\u89C8\u5361\u3002</p>",
+      "</div>"
+    ].join("");
   }
-  const lines = [
-    "> [!bookmark-content] \u6B63\u6587\u63D0\u8981",
-    ...record.articleAuthor ? [`> - \u4F5C\u8005\uFF1A${escapeMarkdown(record.articleAuthor)}`] : [],
-    ...record.articlePublishedAt ? [`> - \u53D1\u5E03\u65F6\u95F4\uFF1A${escapeMarkdown(normalizePublishedAt(record.articlePublishedAt))}`] : [],
-    ...record.articleWordCount ? [`> - \u6B63\u6587\u5B57\u6570\uFF1A${escapeMarkdown(String(record.articleWordCount))}`] : [],
-    ...record.articleExcerpt ? [">", `> ${escapeMarkdown(record.articleExcerpt)}`] : []
-  ];
-  if (record.articleMarkdown) {
-    lines.push("", "## \u89E3\u6790\u6B63\u6587", "", record.articleMarkdown.trim());
-  }
-  return lines;
+  return [
+    '<div class="bookmark-atlas-bookmark-preview-media">',
+    `<img src="${escapeHtmlAttribute(toDetailRelativeAssetPath(previewPath))}" alt="\u7F51\u7AD9\u9884\u89C8">`,
+    "</div>"
+  ].join("");
 }
 function normalizePublishedAt(value) {
   return value.includes("T") ? value.slice(0, 16).replace("T", " ") : value;
+}
+function formatDisplayUrl(url, fallback) {
+  return url.replace(/^https?:\/\//, "").replace(/\/$/, "") || fallback;
 }
 
 // src/notes/renderers/import-note-renderer.ts
@@ -34170,17 +34229,16 @@ var BookmarkNoteWriter = class {
       }
     }
     const generatedNotes = [...state.generatedNotes.filter((entry) => entry.path !== summaryNote.path), summaryNote].sort((left, right) => right.importedAt.localeCompare(left.importedAt));
-    const nextState = {
+    const nextState = buildSyncedState({
       ...state,
       version: PLUGIN_DATA_VERSION,
-      records: sortRecords(Array.from(mergedRecords.values())),
       duplicates: mergeDuplicates(Array.from(mergedRecords.values()), state.duplicates, result),
-      noteIndex,
       generatedNotes,
+      noteIndex,
       lastImportAt: result.preparedAt,
       lastImportFileName: result.sourceFileName,
       latestNotePath: summaryNote.path
-    };
+    }, Array.from(mergedRecords.values()));
     await this.writeAtlasNote(nextState);
     return nextState;
   }
@@ -34197,9 +34255,10 @@ var BookmarkNoteWriter = class {
       this.settings,
       state.records.map((record) => hydrateRecordPaths(record, this.settings.rootFolder))
     );
-    const notesByPath = new Map(state.generatedNotes.map((note) => [note.path, note]));
-    for (const note of state.generatedNotes) {
-      const summaryRecords = normalizedRecords.filter((record) => resolveSummaryPath(record) === note.path);
+    const normalizedState = buildSyncedState(state, normalizedRecords);
+    const notesByPath = new Map(normalizedState.generatedNotes.map((note) => [note.path, note]));
+    for (const note of normalizedState.generatedNotes) {
+      const summaryRecords = normalizedState.records.filter((record) => resolveSummaryPath(record) === note.path);
       if (summaryRecords.length === 0) {
         continue;
       }
@@ -34208,20 +34267,16 @@ var BookmarkNoteWriter = class {
       }
       await this.writeImportNote(note, summaryRecords);
     }
-    for (const record of normalizedRecords) {
+    for (const record of normalizedState.records) {
       if (!record.summaryNotePath) {
-        const fallback = state.latestNotePath ? notesByPath.get(state.latestNotePath) : void 0;
+        const fallback = normalizedState.latestNotePath ? notesByPath.get(normalizedState.latestNotePath) : void 0;
         if (fallback) {
           const hydrated = hydrateRecordPaths(record, this.settings.rootFolder, fallback.path);
           await this.writeDetailNote(hydrated, fallback);
         }
       }
     }
-    await this.writeAtlasNote({
-      ...state,
-      records: normalizedRecords,
-      noteIndex: Object.fromEntries(normalizedRecords.map((record) => [record.dedupeKey, record.detailNotePath ?? record.notePath ?? ""]).filter((entry) => entry[1]))
-    });
+    await this.writeAtlasNote(normalizedState);
   }
   async resyncManagedNotes(state) {
     const normalizedRecords = await captureLocalScreenshots(
@@ -34230,13 +34285,63 @@ var BookmarkNoteWriter = class {
       this.settings,
       state.records.map((record) => hydrateRecordPaths(record, this.settings.rootFolder))
     );
-    const normalizedState = {
-      ...state,
-      version: PLUGIN_DATA_VERSION,
-      records: sortRecords(normalizedRecords),
-      noteIndex: Object.fromEntries(normalizedRecords.map((record) => [record.dedupeKey, record.detailNotePath ?? record.notePath ?? ""]).filter((entry) => entry[1]))
-    };
+    const normalizedState = buildSyncedState(state, normalizedRecords);
     await this.rebuildIndexesFromState(normalizedState);
+    return normalizedState;
+  }
+  async regenerateDetailNotes(state) {
+    await this.ensureFolder(this.settings.rootFolder);
+    await this.ensureFolder(`${this.settings.rootFolder}/Items`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Assets`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Assets/Screenshots`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Assets/Previews`);
+    const normalizedRecords = await captureLocalScreenshots(
+      this.app,
+      this.pluginDir,
+      this.settings,
+      state.records.map((record) => hydrateRecordPaths(record, this.settings.rootFolder))
+    );
+    const normalizedState = buildSyncedState(state, normalizedRecords);
+    const notesByPath = new Map(normalizedState.generatedNotes.map((note) => [note.path, note]));
+    for (const record of normalizedState.records) {
+      const summaryNote = record.summaryNotePath ? notesByPath.get(record.summaryNotePath) : void 0;
+      const fallbackNote = summaryNote ?? (normalizedState.latestNotePath ? notesByPath.get(normalizedState.latestNotePath) : void 0) ?? normalizedState.generatedNotes[0];
+      if (!fallbackNote) {
+        continue;
+      }
+      await this.writeDetailNote(record, fallbackNote);
+    }
+    return normalizedState;
+  }
+  async rewriteManagedNotesFromState(state) {
+    await this.ensureFolder(this.settings.rootFolder);
+    await this.ensureFolder(`${this.settings.rootFolder}/Imports`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Items`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Assets`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Assets/Screenshots`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Assets/Previews`);
+    const normalizedRecords = state.records.map((record) => hydrateRecordPaths(record, this.settings.rootFolder));
+    const normalizedState = buildSyncedState(state, normalizedRecords);
+    const notesByPath = new Map(normalizedState.generatedNotes.map((note) => [note.path, note]));
+    for (const note of normalizedState.generatedNotes) {
+      const summaryRecords = normalizedState.records.filter((record) => resolveSummaryPath(record) === note.path);
+      if (summaryRecords.length === 0) {
+        continue;
+      }
+      for (const record of summaryRecords) {
+        await this.writeDetailNote(record, note);
+      }
+      await this.writeImportNote(note, summaryRecords);
+    }
+    for (const record of normalizedState.records) {
+      if (!record.summaryNotePath) {
+        const fallback = normalizedState.latestNotePath ? notesByPath.get(normalizedState.latestNotePath) : void 0;
+        if (fallback) {
+          await this.writeDetailNote(record, fallback);
+        }
+      }
+    }
+    await this.writeAtlasNote(normalizedState);
     return normalizedState;
   }
   async rebuildDataFromVault() {
@@ -34370,7 +34475,7 @@ var BookmarkNoteWriter = class {
   }
 };
 function sortRecords(records) {
-  return [...records].sort((left, right) => left.category.localeCompare(right.category, "zh-CN") || left.title.localeCompare(right.title, "zh-CN"));
+  return normalizeManualOrder([...records].sort(compareRecords));
 }
 function buildImportTitle(result) {
   const baseName = result.sourceFileName.replace(/\.[^.]+$/, "");
@@ -34390,6 +34495,47 @@ function hydrateRecordPaths(record, rootFolder, summaryFallback) {
     detailNotePath,
     summaryNotePath
   });
+}
+function buildSyncedState(state, records) {
+  const sortedRecords = sortRecords(records);
+  return {
+    ...state,
+    version: PLUGIN_DATA_VERSION,
+    records: sortedRecords,
+    generatedNotes: syncGeneratedNotes(sortedRecords, state.generatedNotes),
+    noteIndex: Object.fromEntries(sortedRecords.map((record) => [record.dedupeKey, record.detailNotePath ?? record.notePath ?? ""]).filter((entry) => entry[1]))
+  };
+}
+function syncGeneratedNotes(records, generatedNotes) {
+  const recordsByPath = /* @__PURE__ */ new Map();
+  for (const record of records) {
+    const summaryPath = resolveSummaryPath(record);
+    if (!summaryPath) {
+      continue;
+    }
+    const list = recordsByPath.get(summaryPath) ?? [];
+    list.push(record);
+    recordsByPath.set(summaryPath, list);
+  }
+  return [...generatedNotes].map((note) => {
+    const summaryRecords = recordsByPath.get(note.path);
+    if (!summaryRecords || summaryRecords.length === 0) {
+      return note;
+    }
+    return {
+      ...note,
+      recordCount: summaryRecords.length,
+      categoryCount: new Set(summaryRecords.map((record) => record.category || "\u672A\u5206\u7C7B")).size
+    };
+  }).sort((left, right) => right.importedAt.localeCompare(left.importedAt));
+}
+function normalizeManualOrder(records) {
+  return records.map((record, index) => record.manualOrder === index ? record : { ...record, manualOrder: index });
+}
+function compareRecords(left, right) {
+  const leftOrder = left.manualOrder ?? Number.MAX_SAFE_INTEGER;
+  const rightOrder = right.manualOrder ?? Number.MAX_SAFE_INTEGER;
+  return leftOrder - rightOrder || left.category.localeCompare(right.category, "zh-CN") || left.title.localeCompare(right.title, "zh-CN");
 }
 function resolveSummaryPath(record) {
   return record.summaryNotePath ?? (record.notePath && isImportNotePath(record.notePath) ? record.notePath : void 0);
@@ -34646,6 +34792,18 @@ var import_obsidian7 = require("obsidian");
 // src/views/atlas/record-card-renderer.ts
 function renderRecordCard(container, record, actions) {
   const card = container.createDiv({ cls: "bookmark-atlas-card" });
+  card.setAttribute("data-record-id", record.id);
+  const previewPath = record.previewAssetPath ?? record.screenshotPath;
+  if (previewPath) {
+    card.addClass("has-preview");
+    const media = card.createDiv({ cls: "bookmark-atlas-card-media" });
+    const mediaBadge = media.createDiv({ cls: "bookmark-atlas-card-media-badge" });
+    mediaBadge.createSpan({ text: record.siteName || record.domain || "\u7F51\u9875\u9884\u89C8" });
+    const image = media.createEl("img", { cls: "bookmark-atlas-card-media-image" });
+    image.src = actions.resolveAssetUrl(previewPath);
+    image.alt = "\u7F51\u7AD9\u9884\u89C8";
+    image.loading = "lazy";
+  }
   const top = card.createDiv({ cls: "bookmark-atlas-card-top" });
   const header = top.createDiv({ cls: "bookmark-atlas-card-header" });
   if (record.favicon) {
@@ -34657,22 +34815,111 @@ function renderRecordCard(container, record, actions) {
     fallback.setText((record.domain || record.title || "?").slice(0, 1).toUpperCase());
   }
   const titleBlock = header.createDiv({ cls: "bookmark-atlas-card-title-block" });
+  const eyebrow = titleBlock.createDiv({ cls: "bookmark-atlas-card-eyebrow" });
+  eyebrow.createSpan({ cls: "bookmark-atlas-card-site-pill", text: record.siteName || record.domain || "\u672A\u77E5\u7AD9\u70B9" });
+  eyebrow.createSpan({ cls: "bookmark-atlas-card-category-pill", text: record.category || "\u672A\u5206\u7C7B" });
   titleBlock.createEl("h3", { text: record.title });
+  titleBlock.createEl("a", {
+    cls: "bookmark-atlas-card-url",
+    href: record.url,
+    text: formatDisplayUrl2(record.url)
+  });
   titleBlock.createEl("div", { cls: "bookmark-atlas-card-domain", text: `${record.domain || "\u672A\u77E5\u57DF\u540D"} \xB7 ${record.category || "\u672A\u5206\u7C7B"}` });
   const cardActions = top.createDiv({ cls: "bookmark-atlas-card-actions" });
+  const sortActions = cardActions.createDiv({ cls: "bookmark-atlas-card-sort-actions" });
+  const moveUpButton = sortActions.createEl("button", { cls: "bookmark-atlas-icon-button", text: "\u2191" });
+  moveUpButton.setAttribute("aria-label", "\u4E0A\u79FB");
+  moveUpButton.disabled = !actions.canMoveUp;
+  moveUpButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (actions.moveUp) {
+      void actions.moveUp();
+    }
+  });
+  const moveDownButton = sortActions.createEl("button", { cls: "bookmark-atlas-icon-button", text: "\u2193" });
+  moveDownButton.setAttribute("aria-label", "\u4E0B\u79FB");
+  moveDownButton.disabled = !actions.canMoveDown;
+  moveDownButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (actions.moveDown) {
+      void actions.moveDown();
+    }
+  });
   const detailButton = cardActions.createEl("button", { text: "\u8BE6\u60C5\u9875" });
-  detailButton.addEventListener("click", () => actions.openRecordNote(record));
-  const linkButton = cardActions.createEl("button", { cls: "mod-cta", text: "\u6253\u5F00\u94FE\u63A5" });
-  linkButton.addEventListener("click", () => actions.openExternalUrl(record.url));
-  card.createEl("p", { cls: "bookmark-atlas-card-description", text: record.description });
+  detailButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    actions.openRecordNote(record);
+  });
+  const linkButton = cardActions.createEl("button", { cls: "mod-cta", text: "\u8BBF\u95EE\u539F\u7F51\u9875" });
+  linkButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    actions.openExternalUrl(record.url);
+  });
+  card.createEl("p", {
+    cls: "bookmark-atlas-card-description",
+    text: record.articleExcerpt || record.description || "\u6682\u672A\u6293\u53D6\u5230\u53EF\u5C55\u793A\u7684\u7AD9\u70B9\u6458\u8981\u3002"
+  });
+  const categoryEditor = card.createDiv({ cls: "bookmark-atlas-card-category-editor" });
+  categoryEditor.createSpan({ cls: "bookmark-atlas-card-category-label", text: "\u6240\u5C5E\u5206\u7C7B" });
+  const categoryInput = categoryEditor.createEl("input", {
+    cls: "bookmark-atlas-card-category-input",
+    type: "text",
+    placeholder: "\u8F93\u5165\u65B0\u7684\u5206\u7C7B\u540D"
+  });
+  const categoryListId = `bookmark-atlas-category-options-${record.id}`;
+  categoryInput.setAttribute("list", categoryListId);
+  categoryInput.value = record.category || "\u672A\u5206\u7C7B";
+  const categorySuggestions = categoryEditor.createEl("datalist");
+  categorySuggestions.id = categoryListId;
+  for (const option of actions.categoryOptions) {
+    categorySuggestions.createEl("option", { value: option });
+  }
+  const saveCategoryButton = categoryEditor.createEl("button", { cls: "mod-cta", text: "\u4FDD\u5B58\u5206\u7C7B" });
+  const submitCategoryUpdate = async () => {
+    const nextCategory = categoryInput.value.trim() || "\u672A\u5206\u7C7B";
+    if (nextCategory === (record.category || "\u672A\u5206\u7C7B")) {
+      return;
+    }
+    categoryInput.disabled = true;
+    saveCategoryButton.disabled = true;
+    try {
+      await actions.updateRecordCategory(record.id, nextCategory);
+    } finally {
+      categoryInput.disabled = false;
+      saveCategoryButton.disabled = false;
+    }
+  };
+  categoryInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.stopPropagation();
+      void submitCategoryUpdate();
+    }
+  });
+  saveCategoryButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    void submitCategoryUpdate();
+  });
   const tags = card.createDiv({ cls: "bookmark-atlas-tags" });
   for (const tag of record.tags.slice(0, 8)) {
     tags.createSpan({ cls: "bookmark-atlas-tag", text: tag });
   }
   const footer = card.createDiv({ cls: "bookmark-atlas-card-footer" });
-  footer.createSpan({ text: `\u6765\u6E90 ${record.sourceBrowser} / ${record.sourceFormat}` });
-  footer.createSpan({ text: `\u6293\u53D6\u72B6\u6001 ${record.fetchStatus}` });
-  footer.createSpan({ text: record.folderPath.length > 0 ? `\u76EE\u5F55 ${record.folderPath.join(" / ")}` : "\u672A\u8BBE\u7F6E\u539F\u59CB\u76EE\u5F55" });
+  createFooterFact(footer, "\u6765\u6E90", `${record.sourceBrowser} / ${record.sourceFormat}`);
+  createFooterFact(footer, "\u6293\u53D6\u72B6\u6001", record.fetchStatus);
+  createFooterFact(footer, "\u539F\u59CB\u76EE\u5F55", record.folderPath.length > 0 ? record.folderPath.join(" / ") : "\u672A\u8BBE\u7F6E\u539F\u59CB\u76EE\u5F55");
+  return card;
+}
+function createFooterFact(container, label, value) {
+  const item = container.createDiv({ cls: "bookmark-atlas-card-fact" });
+  item.createSpan({ cls: "bookmark-atlas-card-fact-label", text: label });
+  item.createSpan({ cls: "bookmark-atlas-card-fact-value", text: value });
+}
+function formatDisplayUrl2(url) {
+  return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 }
 
 // src/views/atlas/layout-renderer.ts
@@ -34708,17 +34955,28 @@ function renderAtlasLayout(input) {
 function renderHero(shell, generatedNotesCount, recordCount, lastImportAtLabel, latestNote, actions) {
   const hero = shell.createDiv({ cls: "bookmark-atlas-hero" });
   const heroMain = hero.createDiv({ cls: "bookmark-atlas-hero-main" });
-  heroMain.createEl("span", { cls: "bookmark-atlas-kicker", text: "Acrylic Library" });
+  heroMain.createEl("span", { cls: "bookmark-atlas-kicker", text: "Curated Reading Stack" });
   heroMain.createEl("h2", { text: "Bookmark Atlas" });
   heroMain.createEl("p", {
     cls: "bookmark-atlas-hero-copy",
     text: "\u5BFC\u5165\u4E66\u7B7E\u540E\uFF0C\u540C\u65F6\u4FDD\u7559\u53EF\u6D4F\u89C8\u7684\u6C47\u603B\u7B14\u8BB0\u548C\u53EF\u6C89\u6DC0\u5907\u6CE8\u7684\u5355\u4E66\u7B7E\u8BE6\u60C5\u9875\u3002"
   });
-  const heroMeta = hero.createDiv({ cls: "bookmark-atlas-hero-meta" });
+  const rail = hero.createDiv({ cls: "bookmark-atlas-hero-rail" });
+  const spotlight = rail.createDiv({ cls: "bookmark-atlas-hero-spotlight" });
+  spotlight.createEl("span", { cls: "bookmark-atlas-panel-label", text: "Workspace Pulse" });
+  spotlight.createEl("strong", {
+    cls: "bookmark-atlas-hero-spotlight-value",
+    text: latestNote ? latestNote.title : "\u7B49\u5F85\u9996\u6B21\u5BFC\u5165"
+  });
+  spotlight.createEl("p", {
+    cls: "bookmark-atlas-hero-spotlight-copy",
+    text: latestNote ? `${latestNote.recordCount} \u6761\u4E66\u7B7E\u5DF2\u5F52\u6863\uFF0C\u6700\u65B0\u6279\u6B21\u6765\u81EA ${latestNote.sourceBrowser} / ${latestNote.sourceFormat}` : "\u5BFC\u5165\u4E00\u4EFD\u6D4F\u89C8\u5668\u4E66\u7B7E\u540E\uFF0C\u8FD9\u91CC\u4F1A\u663E\u793A\u6700\u65B0\u4E00\u6279\u53EF\u7EE7\u7EED\u6574\u7406\u7684\u5165\u53E3\u3002"
+  });
+  const heroMeta = rail.createDiv({ cls: "bookmark-atlas-hero-meta" });
   createMiniMetric(heroMeta, "\u6700\u65B0\u5BFC\u5165", lastImportAtLabel);
   createMiniMetric(heroMeta, "\u6C47\u603B\u7B14\u8BB0", String(generatedNotesCount));
   createMiniMetric(heroMeta, "\u5F53\u524D\u8BB0\u5F55", String(recordCount));
-  const toolbar = hero.createDiv({ cls: "bookmark-atlas-toolbar" });
+  const toolbar = rail.createDiv({ cls: "bookmark-atlas-toolbar bookmark-atlas-hero-actions" });
   const importButton = toolbar.createEl("button", { cls: "mod-cta", text: "\u5BFC\u5165\u4E66\u7B7E" });
   importButton.addEventListener("click", () => actions.openImportModal());
   const openLatestButton = toolbar.createEl("button", { text: "\u6253\u5F00\u6700\u65B0\u6C47\u603B" });
@@ -34729,16 +34987,28 @@ function renderHero(shell, generatedNotesCount, recordCount, lastImportAtLabel, 
 }
 function renderStats(shell, records, generatedNotesCount, categoryCount, duplicatesCount) {
   const stats = shell.createDiv({ cls: "bookmark-atlas-stats" });
-  createStatCard(stats, "\u4E66\u7B7E\u8BE6\u60C5\u9875", String(records.filter((record) => Boolean(record.detailNotePath ?? record.notePath)).length), "file-text");
-  createStatCard(stats, "\u6C47\u603B\u7B14\u8BB0", String(generatedNotesCount), "files");
-  createStatCard(stats, "\u5206\u7C7B\u6570", String(categoryCount), "folders");
-  createStatCard(stats, "\u91CD\u590D\u7EC4", String(duplicatesCount), "copy");
+  createStatCard(stats, "\u4E66\u7B7E\u8BE6\u60C5\u9875", String(records.filter((record) => Boolean(record.detailNotePath ?? record.notePath)).length), "file-text", "\u9002\u5408\u7EE7\u7EED\u6C89\u6DC0\u7B14\u8BB0");
+  createStatCard(stats, "\u6C47\u603B\u7B14\u8BB0", String(generatedNotesCount), "files", "\u6279\u6B21\u6D4F\u89C8\u5165\u53E3");
+  createStatCard(stats, "\u5206\u7C7B\u6570", String(categoryCount), "folders", "\u5F53\u524D\u6574\u7406\u7EF4\u5EA6");
+  createStatCard(stats, "\u91CD\u590D\u7EC4", String(duplicatesCount), "copy", "\u5F85\u53BB\u91CD\u5019\u9009");
 }
 function renderLatestNoteSpotlight(shell, note, actions) {
   const panel = shell.createDiv({ cls: "bookmark-atlas-featured-note" });
+  panel.addClass("is-clickable");
+  panel.tabIndex = 0;
+  panel.setAttribute("role", "button");
+  panel.addEventListener("click", () => void actions.openLatestGeneratedNote());
+  panel.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      void actions.openLatestGeneratedNote();
+    }
+  });
   const copy = panel.createDiv({ cls: "bookmark-atlas-featured-copy" });
-  copy.createEl("span", { cls: "bookmark-atlas-kicker", text: "Latest Summary" });
-  copy.createEl("h3", { text: note.title });
+  const copyTopline = copy.createDiv({ cls: "bookmark-atlas-featured-topline" });
+  copyTopline.createEl("span", { cls: "bookmark-atlas-kicker", text: "Latest Summary" });
+  copyTopline.createEl("span", { cls: "bookmark-atlas-featured-source", text: `${note.sourceBrowser} / ${note.sourceFormat}` });
+  copy.createEl("h3", { cls: "bookmark-atlas-featured-title", text: note.title });
   copy.createEl("p", {
     text: `${note.recordCount} \u6761\u4E66\u7B7E\uFF0C${note.categoryCount} \u4E2A\u5206\u7C7B\uFF0C\u6765\u6E90 ${note.sourceBrowser} / ${note.sourceFormat}`
   });
@@ -34747,7 +35017,10 @@ function renderLatestNoteSpotlight(shell, note, actions) {
   meta.createSpan({ cls: "bookmark-atlas-featured-pill", text: `${note.recordCount} \u6761\u4E66\u7B7E` });
   meta.createSpan({ cls: "bookmark-atlas-featured-pill", text: `${note.categoryCount} \u4E2A\u5206\u7C7B` });
   const button = panel.createDiv({ cls: "bookmark-atlas-featured-actions" }).createEl("button", { cls: "mod-cta", text: "\u76F4\u63A5\u6253\u5F00\u8FD9\u7BC7\u6C47\u603B" });
-  button.addEventListener("click", () => void actions.openLatestGeneratedNote());
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    void actions.openLatestGeneratedNote();
+  });
 }
 function renderControls(shell, filterState, derivedState, latestNote, actions) {
   const controls = shell.createDiv({ cls: "bookmark-atlas-controls" });
@@ -34796,7 +35069,15 @@ function renderControls(shell, filterState, derivedState, latestNote, actions) {
   });
 }
 function renderCategoryDeck(shell, derivedState, actions) {
-  const categoryStrip = shell.createDiv({ cls: "bookmark-atlas-category-deck" });
+  const section = shell.createDiv({ cls: "bookmark-atlas-category-section" });
+  const header = section.createDiv({ cls: "bookmark-atlas-section-head" });
+  header.createEl("span", { cls: "bookmark-atlas-kicker", text: "Category Focus" });
+  header.createEl("strong", { cls: "bookmark-atlas-section-title", text: "\u6309\u4E3B\u9898\u5FEB\u901F\u5207\u6362\u5F53\u524D\u89C6\u89D2" });
+  header.createEl("p", {
+    cls: "bookmark-atlas-section-copy",
+    text: "\u70B9\u51FB\u5206\u7C7B\u80F6\u56CA\u76F4\u63A5\u805A\u7126\uFF0C\u5F53\u524D\u7B5B\u9009\u4F1A\u548C\u641C\u7D22\u3001\u6765\u6E90\u3001\u8303\u56F4\u8054\u52A8\u3002"
+  });
+  const categoryStrip = section.createDiv({ cls: "bookmark-atlas-category-deck" });
   const allCategoryCard = createCategoryCard(categoryStrip, "\u5168\u90E8", derivedState.scopedRecords.length, derivedState.selectedCategory === "\u5168\u90E8");
   allCategoryCard.addEventListener("click", () => actions.onCategoryCardToggle("\u5168\u90E8"));
   for (const [category, count] of derivedState.categoryCards) {
@@ -34805,26 +35086,47 @@ function renderCategoryDeck(shell, derivedState, actions) {
   }
 }
 function renderResults(shell, derivedState, actions) {
-  const resultMeta = shell.createDiv({ cls: "bookmark-atlas-result-meta" });
+  const section = shell.createDiv({ cls: "bookmark-atlas-results-section" });
+  const header = section.createDiv({ cls: "bookmark-atlas-section-head bookmark-atlas-result-head" });
+  const copy = header.createDiv({ cls: "bookmark-atlas-result-head-copy" });
+  copy.createEl("span", { cls: "bookmark-atlas-kicker", text: "Browse Records" });
+  copy.createEl("strong", { cls: "bookmark-atlas-section-title", text: "\u5F53\u524D\u7B5B\u9009\u547D\u4E2D\u7684\u4E66\u7B7E\u5361\u7247" });
+  copy.createEl("p", {
+    cls: "bookmark-atlas-section-copy",
+    text: "\u4FDD\u7559\u5FEB\u901F\u6D4F\u89C8\u3001\u4FEE\u6539\u5206\u7C7B\u548C\u4E0A\u4E0B\u6392\u5E8F\u7684\u64CD\u4F5C\uFF0C\u4E0D\u6253\u65AD\u9605\u8BFB\u8282\u594F\u3002"
+  });
+  const resultMeta = header.createDiv({ cls: "bookmark-atlas-result-meta" });
   resultMeta.setText(`\u663E\u793A ${derivedState.filteredRecords.length} / ${derivedState.scopedRecords.length} \u6761\u8BB0\u5F55 \xB7 ${derivedState.scopeLabel}`);
-  const list = shell.createDiv({ cls: "bookmark-atlas-list" });
+  const list = section.createDiv({ cls: "bookmark-atlas-list" });
   if (derivedState.filteredRecords.length === 0) {
     list.createDiv({ cls: "bookmark-atlas-empty", text: "\u6682\u65E0\u5339\u914D\u7ED3\u679C\u3002\u53EF\u4EE5\u5148\u5BFC\u5165\u4E00\u4EFD\u6D4F\u89C8\u5668\u4E66\u7B7E\u6587\u4EF6\uFF0C\u6216\u653E\u5BBD\u5F53\u524D\u7B5B\u9009\u6761\u4EF6\u3002" });
     return;
   }
-  for (const record of derivedState.filteredRecords.slice(0, 250)) {
+  const categoryOptions = Array.from(new Set(derivedState.scopedRecords.map((record) => record.category || "\u672A\u5206\u7C7B"))).sort((left, right) => left.localeCompare(right, "zh-CN"));
+  const visibleRecords = derivedState.filteredRecords.slice(0, 250);
+  for (const [index, record] of visibleRecords.entries()) {
+    const previousRecord = visibleRecords[index - 1];
+    const nextRecord = visibleRecords[index + 1];
     renderRecordCard(list, record, {
       openRecordNote: (selectedRecord) => void actions.openRecordNote(selectedRecord),
-      openExternalUrl: (url) => void actions.openExternalUrl(url)
+      openExternalUrl: (url) => void actions.openExternalUrl(url),
+      resolveAssetUrl: (path) => actions.resolveAssetUrl(path),
+      updateRecordCategory: (recordId, category) => actions.updateRecordCategory(recordId, category),
+      categoryOptions,
+      canMoveUp: Boolean(previousRecord),
+      canMoveDown: Boolean(nextRecord),
+      moveUp: previousRecord ? () => actions.reorderRecords(record.id, previousRecord.id) : void 0,
+      moveDown: nextRecord ? () => actions.reorderRecords(record.id, nextRecord.id) : void 0
     });
   }
 }
-function createStatCard(container, label, value, icon) {
+function createStatCard(container, label, value, icon, detail) {
   const card = container.createDiv({ cls: "bookmark-atlas-stat-card" });
   const iconEl = card.createDiv({ cls: "bookmark-atlas-stat-icon" });
   (0, import_obsidian7.setIcon)(iconEl, icon);
   card.createDiv({ cls: "bookmark-atlas-stat-label", text: label });
   card.createDiv({ cls: "bookmark-atlas-stat-value", text: value });
+  card.createDiv({ cls: "bookmark-atlas-stat-detail", text: detail });
 }
 function createMiniMetric(container, label, value) {
   const item = container.createDiv({ cls: "bookmark-atlas-mini-metric" });
@@ -34909,6 +35211,9 @@ var BookmarkAtlasView = class extends import_obsidian8.ItemView {
         rebuildIndexesCommand: () => this.plugin.rebuildIndexesCommand(),
         openRecordNote: (record) => this.plugin.openRecordNote(record),
         openExternalUrl: (url) => this.plugin.openExternalUrl(url),
+        resolveAssetUrl: (path) => this.plugin.app.vault.adapter.getResourcePath(path.replace(/\\/g, "/")),
+        updateRecordCategory: (recordId, category) => this.plugin.updateRecordCategory(recordId, category),
+        reorderRecords: (draggedRecordId, targetRecordId) => this.plugin.reorderRecords(draggedRecordId, targetRecordId),
         onSearchTermChange: (value) => {
           this.filterState.searchTerm = value;
           this.render();
@@ -34945,7 +35250,7 @@ var BookmarkAtlasPlugin = class extends import_obsidian9.Plugin {
     await this.loadPluginState();
     this.registerView(VIEW_TYPE_BOOKMARK_ATLAS, (leaf) => new BookmarkAtlasView(leaf, this));
     this.addRibbonIcon("library", "Open Bookmark Atlas", () => {
-      void this.openAtlasView();
+      void this.toggleAtlasView();
     });
     this.addCommand({
       id: "import-bookmarks",
@@ -34971,6 +35276,13 @@ var BookmarkAtlasPlugin = class extends import_obsidian9.Plugin {
       name: "Resync Imported Bookmarks",
       callback: () => {
         void this.resyncImportedBookmarksCommand();
+      }
+    });
+    this.addCommand({
+      id: "regenerate-bookmark-detail-notes",
+      name: "Regenerate Bookmark Detail Notes",
+      callback: () => {
+        void this.regenerateBookmarkDetailNotesCommand();
       }
     });
     this.addCommand({
@@ -35029,8 +35341,22 @@ var BookmarkAtlasPlugin = class extends import_obsidian9.Plugin {
     this.refreshAtlasView();
     new import_obsidian9.Notice(`\u5DF2\u91CD\u65B0\u540C\u6B65\u4E66\u7B7E\u7B14\u8BB0\u5185\u5BB9${issues.length > 0 ? `\uFF0C\u4F34\u968F ${issues.length} \u6761\u544A\u8B66` : ""}`);
   }
+  async regenerateBookmarkDetailNotesCommand() {
+    if (this.state.records.length === 0) {
+      new import_obsidian9.Notice("\u8FD8\u6CA1\u6709\u53EF\u91CD\u751F\u6210\u7684\u4E66\u7B7E\u8BE6\u60C5\u9875");
+      return;
+    }
+    new import_obsidian9.Notice(`\u6B63\u5728\u91CD\u751F\u6210 ${this.state.records.length} \u7BC7\u4E66\u7B7E\u8BE6\u60C5\u9875...`);
+    this.state = await this.getNoteWriter().regenerateDetailNotes(this.state);
+    await this.savePluginState();
+    this.refreshAtlasView();
+    new import_obsidian9.Notice(`\u5DF2\u91CD\u751F\u6210 ${this.state.records.length} \u7BC7\u4E66\u7B7E\u8BE6\u60C5\u9875`);
+  }
   getRecords() {
     return this.state.records;
+  }
+  getAllCategories() {
+    return Array.from(new Set(this.state.records.map((record) => record.category.trim() || "\u672A\u5206\u7C7B"))).sort((left, right) => left.localeCompare(right, "zh-CN"));
   }
   getDuplicates() {
     return this.state.duplicates;
@@ -35077,10 +35403,55 @@ var BookmarkAtlasPlugin = class extends import_obsidian9.Plugin {
       new import_obsidian9.Notice("\u65E0\u6CD5\u6253\u5F00\u5916\u90E8\u94FE\u63A5");
     }
   }
+  async updateRecordCategory(recordId, category) {
+    const nextCategory = category.trim() || "\u672A\u5206\u7C7B";
+    const currentRecord = this.state.records.find((record) => record.id === recordId);
+    if (!currentRecord || currentRecord.category === nextCategory) {
+      return;
+    }
+    const nextRecords = this.state.records.map((record) => record.id === recordId ? { ...record, category: nextCategory } : record);
+    this.state = await this.getNoteWriter().rewriteManagedNotesFromState({
+      ...this.state,
+      records: nextRecords
+    });
+    await this.savePluginState();
+    this.refreshAtlasView();
+    new import_obsidian9.Notice(`\u5DF2\u66F4\u65B0\u4E66\u7B7E\u5206\u7C7B\uFF1A${nextCategory}`);
+  }
+  async reorderRecords(draggedRecordId, targetRecordId) {
+    if (draggedRecordId === targetRecordId) {
+      return;
+    }
+    const records = [...this.state.records];
+    const draggedIndex = records.findIndex((record) => record.id === draggedRecordId);
+    const targetIndex = records.findIndex((record) => record.id === targetRecordId);
+    if (draggedIndex === -1 || targetIndex === -1) {
+      return;
+    }
+    const [draggedRecord] = records.splice(draggedIndex, 1);
+    records.splice(targetIndex, 0, draggedRecord);
+    this.state = {
+      ...this.state,
+      records: records.map((record, index) => ({ ...record, manualOrder: index }))
+    };
+    await this.savePluginState();
+    this.refreshAtlasView();
+  }
+  async toggleAtlasView() {
+    const atlasLeaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_BOOKMARK_ATLAS);
+    if (atlasLeaves.length > 0) {
+      for (const leaf of atlasLeaves) {
+        leaf.detach();
+      }
+      return;
+    }
+    await this.openAtlasView();
+  }
   async openAtlasView() {
     const existingLeaf = this.app.workspace.getLeavesOfType(VIEW_TYPE_BOOKMARK_ATLAS)[0];
     if (existingLeaf) {
-      this.app.workspace.detachLeavesOfType(VIEW_TYPE_BOOKMARK_ATLAS);
+      await this.app.workspace.revealLeaf(existingLeaf);
+      this.refreshAtlasView();
       return;
     }
     const leaf = this.app.workspace.getRightLeaf(false) ?? this.app.workspace.getLeaf(true);
@@ -35088,7 +35459,7 @@ var BookmarkAtlasPlugin = class extends import_obsidian9.Plugin {
       type: VIEW_TYPE_BOOKMARK_ATLAS,
       active: true
     });
-    this.app.workspace.revealLeaf(leaf);
+    await this.app.workspace.revealLeaf(leaf);
     this.refreshAtlasView();
   }
   async savePluginState() {

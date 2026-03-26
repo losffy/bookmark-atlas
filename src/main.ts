@@ -22,7 +22,7 @@ export default class BookmarkAtlasPlugin extends Plugin {
 
     this.registerView(VIEW_TYPE_BOOKMARK_ATLAS, (leaf) => new BookmarkAtlasView(leaf, this));
     this.addRibbonIcon("library", "Open Bookmark Atlas", () => {
-      void this.openAtlasView();
+      void this.toggleAtlasView();
     });
 
     this.addCommand({
@@ -52,6 +52,14 @@ export default class BookmarkAtlasPlugin extends Plugin {
       name: "Resync Imported Bookmarks",
       callback: () => {
         void this.resyncImportedBookmarksCommand();
+      }
+    });
+
+    this.addCommand({
+      id: "regenerate-bookmark-detail-notes",
+      name: "Regenerate Bookmark Detail Notes",
+      callback: () => {
+        void this.regenerateBookmarkDetailNotesCommand();
       }
     });
 
@@ -120,8 +128,26 @@ export default class BookmarkAtlasPlugin extends Plugin {
     new Notice(`已重新同步书签笔记内容${issues.length > 0 ? `，伴随 ${issues.length} 条告警` : ""}`);
   }
 
+  async regenerateBookmarkDetailNotesCommand(): Promise<void> {
+    if (this.state.records.length === 0) {
+      new Notice("还没有可重生成的书签详情页");
+      return;
+    }
+
+    new Notice(`正在重生成 ${this.state.records.length} 篇书签详情页...`);
+    this.state = await this.getNoteWriter().regenerateDetailNotes(this.state);
+    await this.savePluginState();
+    this.refreshAtlasView();
+    new Notice(`已重生成 ${this.state.records.length} 篇书签详情页`);
+  }
+
   getRecords(): BookmarkRecord[] {
     return this.state.records;
+  }
+
+  getAllCategories(): string[] {
+    return Array.from(new Set(this.state.records.map((record) => record.category.trim() || "未分类")))
+      .sort((left, right) => left.localeCompare(right, "zh-CN"));
   }
 
   getDuplicates() {
@@ -176,10 +202,66 @@ export default class BookmarkAtlasPlugin extends Plugin {
     }
   }
 
+  async updateRecordCategory(recordId: string, category: string): Promise<void> {
+    const nextCategory = category.trim() || "未分类";
+    const currentRecord = this.state.records.find((record) => record.id === recordId);
+    if (!currentRecord || currentRecord.category === nextCategory) {
+      return;
+    }
+
+    const nextRecords = this.state.records.map((record) => (
+      record.id === recordId
+        ? { ...record, category: nextCategory }
+        : record
+    ));
+    this.state = await this.getNoteWriter().rewriteManagedNotesFromState({
+      ...this.state,
+      records: nextRecords
+    });
+    await this.savePluginState();
+    this.refreshAtlasView();
+    new Notice(`已更新书签分类：${nextCategory}`);
+  }
+
+  async reorderRecords(draggedRecordId: string, targetRecordId: string): Promise<void> {
+    if (draggedRecordId === targetRecordId) {
+      return;
+    }
+
+    const records = [...this.state.records];
+    const draggedIndex = records.findIndex((record) => record.id === draggedRecordId);
+    const targetIndex = records.findIndex((record) => record.id === targetRecordId);
+    if (draggedIndex === -1 || targetIndex === -1) {
+      return;
+    }
+
+    const [draggedRecord] = records.splice(draggedIndex, 1);
+    records.splice(targetIndex, 0, draggedRecord);
+    this.state = {
+      ...this.state,
+      records: records.map((record, index) => ({ ...record, manualOrder: index }))
+    };
+    await this.savePluginState();
+    this.refreshAtlasView();
+  }
+
+  async toggleAtlasView(): Promise<void> {
+    const atlasLeaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_BOOKMARK_ATLAS);
+    if (atlasLeaves.length > 0) {
+      for (const leaf of atlasLeaves) {
+        leaf.detach();
+      }
+      return;
+    }
+
+    await this.openAtlasView();
+  }
+
   async openAtlasView(): Promise<void> {
     const existingLeaf = this.app.workspace.getLeavesOfType(VIEW_TYPE_BOOKMARK_ATLAS)[0];
     if (existingLeaf) {
-      this.app.workspace.detachLeavesOfType(VIEW_TYPE_BOOKMARK_ATLAS);
+      await this.app.workspace.revealLeaf(existingLeaf);
+      this.refreshAtlasView();
       return;
     }
 
@@ -189,7 +271,7 @@ export default class BookmarkAtlasPlugin extends Plugin {
       type: VIEW_TYPE_BOOKMARK_ATLAS,
       active: true
     });
-    this.app.workspace.revealLeaf(leaf);
+    await this.app.workspace.revealLeaf(leaf);
     this.refreshAtlasView();
   }
 

@@ -9,6 +9,7 @@ export type PreviewStatus = "ready" | "fallback";
 
 export interface BookmarkRecord {
   id: string;
+  manualOrder?: number;
   sourceBrowser: SourceBrowser;
   sourceFormat: SourceFormat;
   title: string;

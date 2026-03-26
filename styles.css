@@ -194,6 +194,16 @@
   align-items: center;
 }
 
+.bookmark-atlas-card-actions {
+  justify-content: space-between;
+}
+
+.bookmark-atlas-card-sort-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .bookmark-atlas-toolbar button,
 .bookmark-atlas-card-actions button,
 .bookmark-atlas-inline-actions button,
@@ -364,7 +374,8 @@
 
 .bookmark-atlas-controls input,
 .bookmark-atlas-controls select,
-.bookmark-atlas-modal input[type="text"] {
+.bookmark-atlas-modal input[type="text"],
+.bookmark-atlas-card-category-editor input {
   width: 100%;
   min-width: 0;
   min-height: 42px;
@@ -378,7 +389,8 @@
 
 .bookmark-atlas-controls input:focus,
 .bookmark-atlas-controls select:focus,
-.bookmark-atlas-modal input[type="text"]:focus {
+.bookmark-atlas-modal input[type="text"]:focus,
+.bookmark-atlas-card-category-editor input:focus {
   border-color: rgba(27, 124, 114, 0.42);
   box-shadow:
     0 0 0 2px rgba(27, 124, 114, 0.12),
@@ -413,6 +425,17 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: stretch;
+}
+
+.bookmark-atlas-category-section,
+.bookmark-atlas-section-head {
+  display: grid;
+  gap: 8px;
+}
+
+.bookmark-atlas-section-copy,
+.bookmark-atlas-featured-source {
+  color: var(--bookmark-atlas-muted);
 }
 
 .bookmark-atlas-category-card {
@@ -504,6 +527,22 @@
   align-items: flex-start;
 }
 
+.bookmark-atlas-card-media {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(58, 78, 69, 0.08);
+  background: rgba(255, 255, 255, 0.56);
+  min-height: 180px;
+}
+
+.bookmark-atlas-card-media-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  object-fit: cover;
+}
+
 .bookmark-atlas-favicon {
   display: grid;
   place-items: center;
@@ -526,6 +565,29 @@
   min-width: 0;
 }
 
+.bookmark-atlas-card-eyebrow,
+.bookmark-atlas-featured-topline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.bookmark-atlas-card-site-pill,
+.bookmark-atlas-card-category-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(58, 78, 69, 0.1);
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--bookmark-atlas-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .bookmark-atlas-card-title-block h3 {
   margin: 0;
   font-size: 1.18rem;
@@ -543,6 +605,27 @@
 .bookmark-atlas-card-description {
   margin: 0;
   line-height: 1.7;
+}
+
+.bookmark-atlas-card-category-editor {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.bookmark-atlas-card-category-label {
+  color: var(--bookmark-atlas-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bookmark-atlas-card-category-editor button {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 13px;
 }
 
 .bookmark-atlas-tags,
@@ -1112,6 +1195,11 @@
   gap: 6px;
 }
 
+.bookmark-atlas-view.is-compact .bookmark-atlas-card-category-editor,
+.bookmark-atlas-view.is-narrow .bookmark-atlas-card-category-editor {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .bookmark-atlas-view.is-narrow .bookmark-atlas-bookmark-head {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -1137,6 +1225,12 @@
 .bookmark-atlas-view.is-compact .bookmark-atlas-card-actions {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+}
+
+.bookmark-atlas-view.is-narrow .bookmark-atlas-card-sort-actions,
+.bookmark-atlas-view.is-compact .bookmark-atlas-card-sort-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .markdown-preview-view .bookmark-atlas-note,
@@ -1368,6 +1462,908 @@
 
   .markdown-preview-view .bookmark-atlas-note-actions {
     justify-content: flex-start;
+  }
+}
+
+.bookmark-atlas-view {
+  background:
+    radial-gradient(circle at 8% 10%, rgba(26, 108, 100, 0.28), transparent 24%),
+    radial-gradient(circle at 92% 12%, rgba(184, 126, 34, 0.2), transparent 22%),
+    radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.4), transparent 42%),
+    linear-gradient(180deg, #efe8da 0%, #e4dccb 100%);
+}
+
+.bookmark-atlas-view::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.34), transparent 72%);
+  pointer-events: none;
+}
+
+.bookmark-atlas-shell {
+  max-width: 1320px;
+  margin: 0 auto;
+  gap: 18px;
+}
+
+.bookmark-atlas-hero,
+.bookmark-atlas-category-section,
+.bookmark-atlas-results-section {
+  isolation: isolate;
+}
+
+.bookmark-atlas-hero {
+  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.84fr);
+  gap: 20px;
+  padding: 28px;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.5), rgba(248, 239, 226, 0.28)),
+    radial-gradient(circle at top right, rgba(27, 124, 114, 0.14), transparent 32%);
+  box-shadow:
+    0 24px 60px rgba(55, 50, 40, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.52);
+}
+
+.bookmark-atlas-hero-main,
+.bookmark-atlas-hero-rail,
+.bookmark-atlas-hero-spotlight {
+  display: grid;
+  gap: 14px;
+}
+
+.bookmark-atlas-hero-main {
+  align-content: start;
+}
+
+.bookmark-atlas-panel-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--bookmark-atlas-muted);
+  font-size: 0.73rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.bookmark-atlas-hero-spotlight {
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(58, 78, 69, 0.11);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(249, 243, 234, 0.38));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 14px 28px rgba(66, 58, 43, 0.08);
+}
+
+.bookmark-atlas-hero-spotlight-value {
+  font-size: 1.08rem;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.bookmark-atlas-hero-spotlight-copy {
+  margin: 0;
+  color: var(--bookmark-atlas-muted);
+  line-height: 1.68;
+}
+
+.bookmark-atlas-hero-meta {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bookmark-atlas-mini-metric {
+  min-height: 92px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(249, 243, 234, 0.34));
+}
+
+.bookmark-atlas-mini-metric strong {
+  font-size: 1.08rem;
+}
+
+.bookmark-atlas-hero-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.bookmark-atlas-hero-actions .mod-cta {
+  grid-column: 1 / -1;
+}
+
+.bookmark-atlas-toolbar button,
+.bookmark-atlas-card-actions button,
+.bookmark-atlas-inline-actions button,
+.bookmark-atlas-featured-note button,
+.bookmark-atlas-scope-switch button {
+  border: 1px solid rgba(58, 78, 69, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(246, 238, 227, 0.58));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.76),
+    0 10px 24px rgba(66, 58, 43, 0.08);
+}
+
+.bookmark-atlas-toolbar button.mod-cta,
+.bookmark-atlas-card-actions button.mod-cta,
+.bookmark-atlas-featured-note button.mod-cta {
+  border-color: rgba(27, 124, 114, 0.32);
+  background: linear-gradient(135deg, #136b62, #249287);
+  color: white;
+  box-shadow:
+    0 18px 30px rgba(20, 103, 95, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.bookmark-atlas-stats {
+  grid-template-columns: 1.3fr repeat(3, minmax(0, 1fr));
+}
+
+.bookmark-atlas-stat-card {
+  min-height: 152px;
+  padding: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(247, 239, 228, 0.32)),
+    radial-gradient(circle at top right, rgba(27, 124, 114, 0.08), transparent 34%);
+}
+
+.bookmark-atlas-stat-card:first-child {
+  background:
+    linear-gradient(135deg, rgba(18, 85, 78, 0.94), rgba(36, 124, 114, 0.92)),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.14), transparent 36%);
+  color: white;
+}
+
+.bookmark-atlas-stat-card:first-child .bookmark-atlas-stat-label,
+.bookmark-atlas-stat-card:first-child .bookmark-atlas-stat-detail,
+.bookmark-atlas-stat-card:first-child .bookmark-atlas-stat-icon {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.bookmark-atlas-stat-card:first-child .bookmark-atlas-stat-value {
+  color: white;
+}
+
+.bookmark-atlas-stat-detail {
+  color: var(--bookmark-atlas-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.bookmark-atlas-featured-note {
+  padding: 22px;
+  border-radius: 26px;
+  background:
+    linear-gradient(135deg, rgba(19, 74, 69, 0.9), rgba(30, 109, 101, 0.88)),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.12), transparent 32%);
+  color: white;
+}
+
+.bookmark-atlas-featured-note::before {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent 48%, rgba(255, 255, 255, 0.08));
+}
+
+.bookmark-atlas-featured-copy p,
+.bookmark-atlas-featured-source {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.bookmark-atlas-featured-pill {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.bookmark-atlas-controls,
+.bookmark-atlas-category-section,
+.bookmark-atlas-results-section {
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(58, 78, 69, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(247, 240, 229, 0.26));
+  box-shadow:
+    0 18px 44px rgba(66, 58, 43, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.54);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+}
+
+.bookmark-atlas-controls {
+  grid-template-columns: minmax(0, 1.8fr) repeat(3, minmax(170px, 1fr));
+  align-items: stretch;
+}
+
+.bookmark-atlas-control-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(250, 243, 233, 0.34));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.bookmark-atlas-controls input,
+.bookmark-atlas-controls select,
+.bookmark-atlas-card-category-editor input {
+  min-height: 46px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.bookmark-atlas-section-head {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.bookmark-atlas-result-head {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.bookmark-atlas-result-head-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.bookmark-atlas-section-title {
+  font-family: var(--bookmark-atlas-font-display);
+  font-size: 1.36rem;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.bookmark-atlas-category-section {
+  gap: 16px;
+}
+
+.bookmark-atlas-category-deck {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 10px;
+}
+
+.bookmark-atlas-category-card {
+  min-height: 56px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  justify-content: stretch;
+}
+
+.bookmark-atlas-category-card-row {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.bookmark-atlas-result-meta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(58, 78, 69, 0.1);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.bookmark-atlas-list {
+  gap: 16px;
+}
+
+.bookmark-atlas-card {
+  padding: 20px;
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(249, 242, 232, 0.3)),
+    radial-gradient(circle at top right, rgba(27, 124, 114, 0.06), transparent 34%);
+  box-shadow:
+    0 20px 46px rgba(66, 58, 43, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+}
+
+.bookmark-atlas-card.has-preview {
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+  grid-template-areas:
+    "media top"
+    "media desc"
+    "media editor"
+    "media tags"
+    "media footer";
+  column-gap: 18px;
+  row-gap: 14px;
+  align-items: start;
+}
+
+.bookmark-atlas-card-top {
+  grid-area: top;
+}
+
+.bookmark-atlas-card-description {
+  grid-area: desc;
+  font-size: 0.96rem;
+  color: rgba(29, 42, 36, 0.82);
+}
+
+.bookmark-atlas-card-category-editor {
+  grid-area: editor;
+}
+
+.bookmark-atlas-tags {
+  grid-area: tags;
+}
+
+.bookmark-atlas-card-footer {
+  grid-area: footer;
+}
+
+.bookmark-atlas-card-media {
+  grid-area: media;
+  position: relative;
+  min-height: 100%;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(11, 34, 32, 0.06), rgba(11, 34, 32, 0)),
+    rgba(255, 255, 255, 0.58);
+}
+
+.bookmark-atlas-card-media::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 42%;
+  background: linear-gradient(180deg, transparent, rgba(17, 28, 27, 0.22));
+  pointer-events: none;
+}
+
+.bookmark-atlas-card-media-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  max-width: calc(100% - 28px);
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  color: var(--bookmark-atlas-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.bookmark-atlas-card-header {
+  gap: 14px;
+}
+
+.bookmark-atlas-favicon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+}
+
+.bookmark-atlas-card-title-block {
+  display: grid;
+  gap: 6px;
+}
+
+.bookmark-atlas-card-title-block h3 {
+  font-size: 1.26rem;
+  line-height: 1.24;
+}
+
+.bookmark-atlas-card-url {
+  color: var(--bookmark-atlas-accent);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 700;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.bookmark-atlas-card-url:hover {
+  text-decoration: underline;
+}
+
+.bookmark-atlas-card-domain {
+  font-size: 0.88rem;
+}
+
+.bookmark-atlas-card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 8px 10px;
+  justify-content: end;
+}
+
+.bookmark-atlas-card-sort-actions {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+
+.bookmark-atlas-card-actions > button {
+  min-width: 112px;
+}
+
+.bookmark-atlas-icon-button {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.bookmark-atlas-card-category-editor {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label label"
+    "input button";
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(58, 78, 69, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(250, 243, 233, 0.32));
+}
+
+.bookmark-atlas-card-category-label {
+  grid-area: label;
+}
+
+.bookmark-atlas-card-category-input {
+  grid-area: input;
+}
+
+.bookmark-atlas-card-category-editor button {
+  grid-area: button;
+  min-width: 104px;
+}
+
+.bookmark-atlas-tags {
+  gap: 9px;
+}
+
+.bookmark-atlas-tag {
+  padding: 6px 12px;
+  border: 1px solid rgba(27, 124, 114, 0.12);
+  background: rgba(27, 124, 114, 0.08);
+}
+
+.bookmark-atlas-card-footer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.bookmark-atlas-card-fact {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(58, 78, 69, 0.08);
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.bookmark-atlas-card-fact-label {
+  color: var(--bookmark-atlas-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bookmark-atlas-card-fact-value {
+  color: var(--bookmark-atlas-ink);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.bookmark-atlas-view.is-compact .bookmark-atlas-hero,
+.bookmark-atlas-view.is-narrow .bookmark-atlas-hero {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.bookmark-atlas-view.is-compact .bookmark-atlas-stats {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bookmark-atlas-view.is-narrow .bookmark-atlas-stats {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.bookmark-atlas-view.is-compact .bookmark-atlas-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bookmark-atlas-view.is-narrow .bookmark-atlas-controls {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.bookmark-atlas-view.is-compact .bookmark-atlas-results-section,
+.bookmark-atlas-view.is-narrow .bookmark-atlas-results-section,
+.bookmark-atlas-view.is-compact .bookmark-atlas-category-section,
+.bookmark-atlas-view.is-narrow .bookmark-atlas-category-section {
+  padding: 16px;
+}
+
+.bookmark-atlas-view.is-compact .bookmark-atlas-card.has-preview,
+.bookmark-atlas-view.is-narrow .bookmark-atlas-card.has-preview {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "media"
+    "top"
+    "desc"
+    "editor"
+    "tags"
+    "footer";
+}
+
+.bookmark-atlas-view.is-compact .bookmark-atlas-card-media,
+.bookmark-atlas-view.is-narrow .bookmark-atlas-card-media {
+  min-height: 220px;
+}
+
+.bookmark-atlas-view.is-compact .bookmark-atlas-card-footer,
+.bookmark-atlas-view.is-narrow .bookmark-atlas-card-footer {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.bookmark-atlas-view.is-compact .bookmark-atlas-result-head,
+.bookmark-atlas-view.is-narrow .bookmark-atlas-result-head {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.bookmark-atlas-view.is-narrow .bookmark-atlas-hero-actions,
+.bookmark-atlas-view.is-narrow .bookmark-atlas-hero-meta,
+.bookmark-atlas-view.is-narrow .bookmark-atlas-category-deck {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.bookmark-atlas-bookmark {
+  gap: 18px;
+}
+
+.bookmark-atlas-bookmark-hero {
+  padding: 30px;
+  background:
+    radial-gradient(circle at top right, rgba(27, 124, 114, 0.16), transparent 32%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(244, 233, 217, 0.46));
+  box-shadow:
+    0 24px 52px rgba(55, 50, 40, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+.bookmark-atlas-bookmark-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.bookmark-atlas-bookmark-hero-copy-wrap,
+.bookmark-atlas-bookmark-hero-aside,
+.bookmark-atlas-bookmark-source-card,
+.bookmark-atlas-bookmark-story-panel,
+.bookmark-atlas-bookmark-trace-list {
+  display: grid;
+  gap: 12px;
+}
+
+.bookmark-atlas-bookmark-eyebrow {
+  color: var(--bookmark-atlas-accent-strong);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bookmark-atlas-bookmark-title {
+  margin: 0;
+}
+
+.bookmark-atlas-bookmark-domain-link {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(27, 124, 114, 0.14);
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--bookmark-atlas-accent);
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-decoration: none;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.bookmark-atlas-bookmark-domain-link:hover {
+  text-decoration: none;
+  box-shadow: var(--bookmark-atlas-shadow-soft);
+}
+
+.bookmark-atlas-bookmark-summary {
+  max-width: 60ch;
+  margin: 2px 0 0;
+  padding-left: 14px;
+  border-left: 3px solid rgba(27, 124, 114, 0.28);
+  font-size: 1rem;
+  line-height: 1.72;
+}
+
+.bookmark-atlas-bookmark-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.bookmark-atlas-bookmark-hero-aside {
+  justify-items: stretch;
+}
+
+.bookmark-atlas-bookmark-favicon-shell {
+  display: grid;
+  place-items: center;
+  min-height: 112px;
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(58, 78, 69, 0.1);
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.7), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(247, 239, 229, 0.4));
+}
+
+.bookmark-atlas-bookmark-favicon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+}
+
+.bookmark-atlas-bookmark-favicon-fallback {
+  font-size: 1.25rem;
+}
+
+.bookmark-atlas-bookmark-source-card {
+  padding: 16px 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(58, 78, 69, 0.1);
+  background: rgba(255, 255, 255, 0.46);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.bookmark-atlas-bookmark-source-card span,
+.bookmark-atlas-bookmark-section-head p,
+.bookmark-atlas-bookmark-trace-item span {
+  color: var(--bookmark-atlas-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bookmark-atlas-bookmark-source-card strong {
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.bookmark-atlas-bookmark-source-card p {
+  margin: 0;
+  color: var(--bookmark-atlas-muted);
+  line-height: 1.65;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.bookmark-atlas-bookmark-status-dashboard {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.bookmark-atlas-bookmark-status-card {
+  display: grid;
+  gap: 6px;
+  min-height: 92px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(58, 78, 69, 0.1);
+  background: rgba(255, 255, 255, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.74),
+    0 12px 24px rgba(66, 58, 43, 0.05);
+}
+
+.bookmark-atlas-bookmark-status-card strong {
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: var(--bookmark-atlas-accent-strong);
+}
+
+.bookmark-atlas-bookmark-status-card.is-risk {
+  background: linear-gradient(180deg, rgba(255, 243, 239, 0.76), rgba(255, 248, 243, 0.52));
+  border-color: rgba(180, 87, 59, 0.18);
+}
+
+.bookmark-atlas-bookmark-status-card.is-risk strong {
+  color: #8a4027;
+}
+
+.bookmark-atlas-bookmark-status-card.is-watch {
+  background: linear-gradient(180deg, rgba(255, 247, 234, 0.78), rgba(255, 251, 241, 0.54));
+  border-color: rgba(194, 139, 45, 0.18);
+}
+
+.bookmark-atlas-bookmark-status-card.is-watch strong {
+  color: #8a5d0c;
+}
+
+.bookmark-atlas-bookmark-status-card.is-healthy strong {
+  color: #16645b;
+}
+
+.bookmark-atlas-bookmark-grid {
+  grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+  gap: 16px;
+}
+
+.bookmark-atlas-bookmark-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(247, 239, 229, 0.34)),
+    radial-gradient(circle at top right, rgba(27, 124, 114, 0.06), transparent 34%);
+  box-shadow:
+    0 18px 40px rgba(66, 58, 43, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.74);
+}
+
+.bookmark-atlas-bookmark-section-head {
+  display: grid;
+  gap: 6px;
+}
+
+.bookmark-atlas-bookmark-section-head h3 {
+  margin: 0;
+  font-family: var(--bookmark-atlas-font-display);
+  font-size: 1.26rem;
+  line-height: 1.14;
+  letter-spacing: -0.03em;
+}
+
+.bookmark-atlas-bookmark-facts {
+  gap: 0;
+}
+
+.bookmark-atlas-bookmark-fact {
+  padding: 14px 0;
+}
+
+.bookmark-atlas-bookmark-story-panel {
+  align-content: start;
+}
+
+.bookmark-atlas-bookmark-preview-media {
+  min-height: 300px;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(10, 27, 26, 0.04), rgba(10, 27, 26, 0)),
+    rgba(255, 255, 255, 0.58);
+}
+
+.bookmark-atlas-bookmark-preview-media img {
+  min-height: 300px;
+  transition: transform 240ms ease;
+}
+
+.bookmark-atlas-bookmark-preview-media:hover img {
+  transform: scale(1.018);
+}
+
+.bookmark-atlas-bookmark-preview-fallback {
+  min-height: 300px;
+  border-radius: 22px;
+}
+
+.bookmark-atlas-bookmark-meta-strip {
+  gap: 8px;
+}
+
+.bookmark-atlas-bookmark-meta-strip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(58, 78, 69, 0.08);
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.bookmark-atlas-bookmark-excerpt-box {
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(58, 78, 69, 0.08);
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.bookmark-atlas-bookmark-excerpt-box .bookmark-atlas-note-entry-copy {
+  margin: 0;
+}
+
+.bookmark-atlas-bookmark .bookmark-atlas-note-panels {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.bookmark-atlas-bookmark-trace-list {
+  gap: 10px;
+}
+
+.bookmark-atlas-bookmark-trace-item {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(58, 78, 69, 0.08);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.bookmark-atlas-bookmark-trace-item strong {
+  font-size: 0.94rem;
+  line-height: 1.55;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .bookmark-atlas-bookmark-hero-grid,
+  .bookmark-atlas-bookmark-grid,
+  .bookmark-atlas-bookmark .bookmark-atlas-note-panels,
+  .bookmark-atlas-bookmark-status-dashboard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bookmark-atlas-bookmark-preview-media,
+  .bookmark-atlas-bookmark-preview-media img,
+  .bookmark-atlas-bookmark-preview-fallback {
+    min-height: 240px;
+  }
+}
+
+@media (max-width: 600px) {
+  .bookmark-atlas-bookmark-hero {
+    padding: 22px;
+  }
+
+  .bookmark-atlas-bookmark-favicon-shell {
+    min-height: 92px;
+  }
+
+  .bookmark-atlas-bookmark-summary {
+    padding-left: 12px;
+  }
+
+  .bookmark-atlas-bookmark-action-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bookmark-atlas-bookmark-link,
+  .bookmark-atlas-bookmark-domain-link {
+    width: 100%;
+    justify-content: center;
   }
 }
 

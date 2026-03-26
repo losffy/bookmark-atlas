@@ -51,17 +51,16 @@ export class BookmarkNoteWriter {
     const generatedNotes = [...state.generatedNotes.filter((entry) => entry.path !== summaryNote.path), summaryNote]
       .sort((left, right) => right.importedAt.localeCompare(left.importedAt));
 
-    const nextState: BookmarkAtlasData = {
+    const nextState = buildSyncedState({
       ...state,
       version: PLUGIN_DATA_VERSION,
-      records: sortRecords(Array.from(mergedRecords.values())),
       duplicates: mergeDuplicates(Array.from(mergedRecords.values()), state.duplicates, result),
-      noteIndex,
       generatedNotes,
+      noteIndex,
       lastImportAt: result.preparedAt,
       lastImportFileName: result.sourceFileName,
       latestNotePath: summaryNote.path
-    };
+    }, Array.from(mergedRecords.values()));
 
     await this.writeAtlasNote(nextState);
     return nextState;
@@ -81,10 +80,11 @@ export class BookmarkNoteWriter {
       this.settings,
       state.records.map((record) => hydrateRecordPaths(record, this.settings.rootFolder))
     );
-    const notesByPath = new Map(state.generatedNotes.map((note) => [note.path, note]));
+    const normalizedState = buildSyncedState(state, normalizedRecords);
+    const notesByPath = new Map(normalizedState.generatedNotes.map((note) => [note.path, note]));
 
-    for (const note of state.generatedNotes) {
-      const summaryRecords = normalizedRecords.filter((record) => resolveSummaryPath(record) === note.path);
+    for (const note of normalizedState.generatedNotes) {
+      const summaryRecords = normalizedState.records.filter((record) => resolveSummaryPath(record) === note.path);
       if (summaryRecords.length === 0) {
         continue;
       }
@@ -94,9 +94,9 @@ export class BookmarkNoteWriter {
       await this.writeImportNote(note, summaryRecords);
     }
 
-    for (const record of normalizedRecords) {
+    for (const record of normalizedState.records) {
       if (!record.summaryNotePath) {
-        const fallback = state.latestNotePath ? notesByPath.get(state.latestNotePath) : undefined;
+        const fallback = normalizedState.latestNotePath ? notesByPath.get(normalizedState.latestNotePath) : undefined;
         if (fallback) {
           const hydrated = hydrateRecordPaths(record, this.settings.rootFolder, fallback.path);
           await this.writeDetailNote(hydrated, fallback);
@@ -104,11 +104,7 @@ export class BookmarkNoteWriter {
       }
     }
 
-    await this.writeAtlasNote({
-      ...state,
-      records: normalizedRecords,
-      noteIndex: Object.fromEntries(normalizedRecords.map((record) => [record.dedupeKey, record.detailNotePath ?? record.notePath ?? ""]).filter((entry) => entry[1]))
-    });
+    await this.writeAtlasNote(normalizedState);
   }
 
   async resyncManagedNotes(state: BookmarkAtlasData): Promise<BookmarkAtlasData> {
@@ -118,14 +114,75 @@ export class BookmarkNoteWriter {
       this.settings,
       state.records.map((record) => hydrateRecordPaths(record, this.settings.rootFolder))
     );
-    const normalizedState: BookmarkAtlasData = {
-      ...state,
-      version: PLUGIN_DATA_VERSION,
-      records: sortRecords(normalizedRecords),
-      noteIndex: Object.fromEntries(normalizedRecords.map((record) => [record.dedupeKey, record.detailNotePath ?? record.notePath ?? ""]).filter((entry) => entry[1]))
-    };
 
+    const normalizedState = buildSyncedState(state, normalizedRecords);
     await this.rebuildIndexesFromState(normalizedState);
+    return normalizedState;
+  }
+
+  async regenerateDetailNotes(state: BookmarkAtlasData): Promise<BookmarkAtlasData> {
+    await this.ensureFolder(this.settings.rootFolder);
+    await this.ensureFolder(`${this.settings.rootFolder}/Items`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Assets`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Assets/Screenshots`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Assets/Previews`);
+
+    const normalizedRecords = await captureLocalScreenshots(
+      this.app,
+      this.pluginDir,
+      this.settings,
+      state.records.map((record) => hydrateRecordPaths(record, this.settings.rootFolder))
+    );
+    const normalizedState = buildSyncedState(state, normalizedRecords);
+    const notesByPath = new Map(normalizedState.generatedNotes.map((note) => [note.path, note]));
+
+    for (const record of normalizedState.records) {
+      const summaryNote = record.summaryNotePath
+        ? notesByPath.get(record.summaryNotePath)
+        : undefined;
+      const fallbackNote = summaryNote ?? (normalizedState.latestNotePath ? notesByPath.get(normalizedState.latestNotePath) : undefined) ?? normalizedState.generatedNotes[0];
+      if (!fallbackNote) {
+        continue;
+      }
+      await this.writeDetailNote(record, fallbackNote);
+    }
+
+    return normalizedState;
+  }
+
+  async rewriteManagedNotesFromState(state: BookmarkAtlasData): Promise<BookmarkAtlasData> {
+    await this.ensureFolder(this.settings.rootFolder);
+    await this.ensureFolder(`${this.settings.rootFolder}/Imports`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Items`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Assets`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Assets/Screenshots`);
+    await this.ensureFolder(`${this.settings.rootFolder}/Assets/Previews`);
+
+    const normalizedRecords = state.records.map((record) => hydrateRecordPaths(record, this.settings.rootFolder));
+    const normalizedState = buildSyncedState(state, normalizedRecords);
+    const notesByPath = new Map(normalizedState.generatedNotes.map((note) => [note.path, note]));
+
+    for (const note of normalizedState.generatedNotes) {
+      const summaryRecords = normalizedState.records.filter((record) => resolveSummaryPath(record) === note.path);
+      if (summaryRecords.length === 0) {
+        continue;
+      }
+      for (const record of summaryRecords) {
+        await this.writeDetailNote(record, note);
+      }
+      await this.writeImportNote(note, summaryRecords);
+    }
+
+    for (const record of normalizedState.records) {
+      if (!record.summaryNotePath) {
+        const fallback = normalizedState.latestNotePath ? notesByPath.get(normalizedState.latestNotePath) : undefined;
+        if (fallback) {
+          await this.writeDetailNote(record, fallback);
+        }
+      }
+    }
+
+    await this.writeAtlasNote(normalizedState);
     return normalizedState;
   }
 
@@ -279,7 +336,7 @@ export class BookmarkNoteWriter {
 }
 
 function sortRecords(records: BookmarkRecord[]): BookmarkRecord[] {
-  return [...records].sort((left, right) => left.category.localeCompare(right.category, "zh-CN") || left.title.localeCompare(right.title, "zh-CN"));
+  return normalizeManualOrder([...records].sort(compareRecords));
 }
 
 function buildImportTitle(result: ImportResult): string {
@@ -307,6 +364,60 @@ function hydrateRecordPaths(record: BookmarkRecord, rootFolder: string, summaryF
     detailNotePath,
     summaryNotePath
   });
+}
+
+function buildSyncedState(state: BookmarkAtlasData, records: BookmarkRecord[]): BookmarkAtlasData {
+  const sortedRecords = sortRecords(records);
+  return {
+    ...state,
+    version: PLUGIN_DATA_VERSION,
+    records: sortedRecords,
+    generatedNotes: syncGeneratedNotes(sortedRecords, state.generatedNotes),
+    noteIndex: Object.fromEntries(sortedRecords.map((record) => [record.dedupeKey, record.detailNotePath ?? record.notePath ?? ""]).filter((entry) => entry[1]))
+  };
+}
+
+function syncGeneratedNotes(records: BookmarkRecord[], generatedNotes: GeneratedNoteSummary[]): GeneratedNoteSummary[] {
+  const recordsByPath = new Map<string, BookmarkRecord[]>();
+  for (const record of records) {
+    const summaryPath = resolveSummaryPath(record);
+    if (!summaryPath) {
+      continue;
+    }
+    const list = recordsByPath.get(summaryPath) ?? [];
+    list.push(record);
+    recordsByPath.set(summaryPath, list);
+  }
+
+  return [...generatedNotes]
+    .map((note) => {
+      const summaryRecords = recordsByPath.get(note.path);
+      if (!summaryRecords || summaryRecords.length === 0) {
+        return note;
+      }
+      return {
+        ...note,
+        recordCount: summaryRecords.length,
+        categoryCount: new Set(summaryRecords.map((record) => record.category || "未分类")).size
+      };
+    })
+    .sort((left, right) => right.importedAt.localeCompare(left.importedAt));
+}
+
+function normalizeManualOrder(records: BookmarkRecord[]): BookmarkRecord[] {
+  return records.map((record, index) => (
+    record.manualOrder === index
+      ? record
+      : { ...record, manualOrder: index }
+  ));
+}
+
+function compareRecords(left: BookmarkRecord, right: BookmarkRecord): number {
+  const leftOrder = left.manualOrder ?? Number.MAX_SAFE_INTEGER;
+  const rightOrder = right.manualOrder ?? Number.MAX_SAFE_INTEGER;
+  return leftOrder - rightOrder
+    || left.category.localeCompare(right.category, "zh-CN")
+    || left.title.localeCompare(right.title, "zh-CN");
 }
 
 function resolveSummaryPath(record: BookmarkRecord): string | undefined {
