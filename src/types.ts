@@ -19,6 +19,12 @@ export interface BookmarkRecord {
   category: string;
   tags: string[];
   description: string;
+  articleExcerpt?: string;
+  articleMarkdown?: string;
+  articleWordCount?: number;
+  articleAuthor?: string;
+  articlePublishedAt?: string;
+  articleSite?: string;
   createdAt?: string;
   importedAt: string;
   dedupeKey: string;

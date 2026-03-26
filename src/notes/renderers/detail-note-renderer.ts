@@ -31,7 +31,8 @@ export function renderDetailNote(record: BookmarkRecord, _summaryNote: Generated
       ? [
         `![网站预览](<${toDetailRelativeAssetPath(record.previewAssetPath ?? record.screenshotPath ?? "")}>)`,
         "",
-        `_${escapeMarkdown(formatPreviewSource(record))}_`
+        `_${escapeMarkdown(formatPreviewSource(record))}_`,
+        ""
       ]
       : ["_本地预览尚未生成。_"])
   ];
@@ -54,6 +55,8 @@ export function renderDetailNote(record: BookmarkRecord, _summaryNote: Generated
     `> - 广告风险：${escapeMarkdown(formatAdRisk(record.adRisk))}`
   ];
 
+  const articleLines = buildArticleLines(record);
+
   const tagLines = [
     "> [!bookmark-tags] 标签与目录",
     `> - 标签：${escapeMarkdown(record.tags.length > 0 ? record.tags.join("、") : "暂无")}`,
@@ -75,6 +78,8 @@ export function renderDetailNote(record: BookmarkRecord, _summaryNote: Generated
     "",
     ...signalLines,
     "",
+    ...articleLines,
+    "",
     ...tagLines,
     "",
     USER_NOTES_HEADING,
@@ -82,4 +87,31 @@ export function renderDetailNote(record: BookmarkRecord, _summaryNote: Generated
     userNotes || "_在这里补充你的判断、用途、收藏理由和后续动作。_",
     ""
   ].join("\n");
+}
+
+function buildArticleLines(record: BookmarkRecord): string[] {
+  if (!record.articleExcerpt && !record.articleMarkdown) {
+    return [
+      "> [!bookmark-content] 正文提要",
+      "> - 暂未提取到可用正文。"
+    ];
+  }
+
+  const lines = [
+    "> [!bookmark-content] 正文提要",
+    ...(record.articleAuthor ? [`> - 作者：${escapeMarkdown(record.articleAuthor)}`] : []),
+    ...(record.articlePublishedAt ? [`> - 发布时间：${escapeMarkdown(normalizePublishedAt(record.articlePublishedAt))}`] : []),
+    ...(record.articleWordCount ? [`> - 正文字数：${escapeMarkdown(String(record.articleWordCount))}`] : []),
+    ...(record.articleExcerpt ? [">", `> ${escapeMarkdown(record.articleExcerpt)}`] : [])
+  ];
+
+  if (record.articleMarkdown) {
+    lines.push("", "## 解析正文", "", record.articleMarkdown.trim());
+  }
+
+  return lines;
+}
+
+function normalizePublishedAt(value: string): string {
+  return value.includes("T") ? value.slice(0, 16).replace("T", " ") : value;
 }

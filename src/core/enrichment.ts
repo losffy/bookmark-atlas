@@ -1,6 +1,7 @@
 import { parse } from "node-html-parser";
 import type { HTMLElement } from "node-html-parser";
 import type { BookmarkAtlasSettings, BookmarkRecord, ImportIssue } from "../types";
+import { extractArticleContent } from "./article-extractor";
 import { applyDerivedSignals } from "./site-signals";
 import { cleanText, truncate } from "./utils";
 
@@ -65,14 +66,21 @@ async function enrichSingleRecord(record: BookmarkRecord, settings: BookmarkAtla
     const metaDescription = extractMetaValue(parsed, ["description", "og:description", "twitter:description"]);
     const siteName = extractMetaValue(parsed, ["og:site_name", "application-name"]) || record.siteName || record.domain;
     const iconHref = resolveUrl(response.url, extractIconHref(parsed));
+    const article = await safelyExtractArticleContent(html, response.url, record, issues);
 
     return applyDerivedSignals({
       ...record,
-      title: shouldReplaceTitle(record.title, fetchedTitle) ? fetchedTitle : record.title,
-      description: metaDescription || record.description,
-      siteName,
+      title: shouldReplaceTitle(record.title, article?.title || fetchedTitle) ? (article?.title || fetchedTitle) : record.title,
+      description: article?.description || metaDescription || record.description,
+      siteName: article?.site || siteName,
+      articleExcerpt: article?.excerpt || record.articleExcerpt,
+      articleMarkdown: article?.markdown || record.articleMarkdown,
+      articleWordCount: article?.wordCount || record.articleWordCount,
+      articleAuthor: article?.author || record.articleAuthor,
+      articlePublishedAt: article?.publishedAt || record.articlePublishedAt,
+      articleSite: article?.site || record.articleSite,
       favicon: iconHref || record.favicon,
-      fetchStatus: metaDescription || fetchedTitle || siteName ? "success" : "failed"
+      fetchStatus: article || metaDescription || fetchedTitle || siteName ? "success" : "failed"
     });
   } catch (error) {
     const timeoutLike = error instanceof Error && error.name === "AbortError";
@@ -89,6 +97,26 @@ async function enrichSingleRecord(record: BookmarkRecord, settings: BookmarkAtla
     });
   } finally {
     globalThis.clearTimeout(timeoutHandle);
+  }
+}
+
+async function safelyExtractArticleContent(
+  html: string,
+  url: string,
+  record: BookmarkRecord,
+  issues: ImportIssue[]
+) {
+  try {
+    return await extractArticleContent(html, url);
+  } catch (error) {
+    issues.push({
+      level: "warning",
+      code: "article-extract-failed",
+      message: `解析正文失败：${error instanceof Error ? error.message : String(error)}`,
+      recordId: record.id,
+      dedupeKey: record.dedupeKey
+    });
+    return null;
   }
 }
 

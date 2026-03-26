@@ -12,6 +12,7 @@ Bookmark Atlas is an Obsidian community plugin for importing Chrome and Firefox 
 - Build a searchable side panel inside Obsidian
 - Save local website previews into the vault
 - Fall back to local preview cards when live screenshots are not usable
+- Extract article正文 from readable pages with Defuddle and write it into bookmark detail notes
 
 ## Installation
 
@@ -105,6 +106,7 @@ npm run build
 Useful scripts:
 
 - `npm run dev`
+- `npm run refresh-articles`
 - `npm run smoke-test`
 - `npm run refresh-previews`
 - `npm run release`
@@ -135,4 +137,5 @@ Do not commit:
 
 - This plugin is desktop-only.
 - Local screenshots and preview generation depend on desktop file access and local browser automation.
+- Defuddle-based article extraction depends on remote HTML fetch and works best on article-like pages, blog posts, docs, and readable landing pages.
 - `data.json` is user data and is not part of the release package.

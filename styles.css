@@ -1163,7 +1163,8 @@
 .markdown-preview-view .callout[data-callout="bookmark-preview"],
 .markdown-preview-view .callout[data-callout="bookmark-info"],
 .markdown-preview-view .callout[data-callout="bookmark-signals"],
-.markdown-preview-view .callout[data-callout="bookmark-tags"] {
+.markdown-preview-view .callout[data-callout="bookmark-tags"],
+.markdown-preview-view .callout[data-callout="bookmark-content"] {
   border: 1px solid var(--bookmark-atlas-border);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 248, 240, 0.36));
   box-shadow: var(--bookmark-atlas-shadow-soft);
@@ -1184,7 +1185,8 @@
 .markdown-preview-view .callout[data-callout="bookmark-preview"] .callout-title,
 .markdown-preview-view .callout[data-callout="bookmark-info"] .callout-title,
 .markdown-preview-view .callout[data-callout="bookmark-signals"] .callout-title,
-.markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-title {
+.markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-title,
+.markdown-preview-view .callout[data-callout="bookmark-content"] .callout-title {
   margin: -8px -8px 12px;
   padding: 14px 16px 12px;
   border-bottom: 1px solid rgba(58, 78, 69, 0.08);
@@ -1224,7 +1226,8 @@
 .markdown-preview-view .callout[data-callout="bookmark-preview"] .callout-content a,
 .markdown-preview-view .callout[data-callout="bookmark-info"] .callout-content a,
 .markdown-preview-view .callout[data-callout="bookmark-signals"] .callout-content a,
-.markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-content a {
+.markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-content a,
+.markdown-preview-view .callout[data-callout="bookmark-content"] .callout-content a {
   display: inline-flex;
   align-items: center;
   min-height: 34px;
@@ -1237,7 +1240,8 @@
 }
 
 .markdown-preview-view .callout[data-callout="bookmark-hero"] .callout-content code,
-.markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-content code {
+.markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-content code,
+.markdown-preview-view .callout[data-callout="bookmark-content"] .callout-content code {
   display: inline-flex;
   align-items: center;
   min-height: 30px;
@@ -1251,7 +1255,8 @@
 
 .markdown-preview-view .callout[data-callout="bookmark-info"] .callout-content ul,
 .markdown-preview-view .callout[data-callout="bookmark-signals"] .callout-content ul,
-.markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-content ul {
+.markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-content ul,
+.markdown-preview-view .callout[data-callout="bookmark-content"] .callout-content ul {
   display: grid;
   gap: 10px;
   list-style: none;
@@ -1260,7 +1265,8 @@
 
 .markdown-preview-view .callout[data-callout="bookmark-info"] .callout-content li,
 .markdown-preview-view .callout[data-callout="bookmark-signals"] .callout-content li,
-.markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-content li {
+.markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-content li,
+.markdown-preview-view .callout[data-callout="bookmark-content"] .callout-content li {
   padding: 12px 14px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.54);
@@ -1299,13 +1305,15 @@
 
 .markdown-preview-view .callout[data-callout="bookmark-info"],
 .markdown-preview-view .callout[data-callout="bookmark-signals"],
-.markdown-preview-view .callout[data-callout="bookmark-tags"] {
+.markdown-preview-view .callout[data-callout="bookmark-tags"],
+.markdown-preview-view .callout[data-callout="bookmark-content"] {
   border-radius: 20px;
 }
 
 .markdown-preview-view .callout[data-callout="bookmark-info"] .callout-content ul,
 .markdown-preview-view .callout[data-callout="bookmark-signals"] .callout-content ul,
-.markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-content ul {
+.markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-content ul,
+.markdown-preview-view .callout[data-callout="bookmark-content"] .callout-content ul {
   margin: 0;
 }
 
@@ -1315,6 +1323,10 @@
 
 .markdown-preview-view .callout[data-callout="bookmark-tags"] {
   border-color: rgba(200, 138, 38, 0.22);
+}
+
+.markdown-preview-view .callout[data-callout="bookmark-content"] {
+  border-color: rgba(27, 124, 114, 0.18);
 }
 
 .markdown-preview-view .callout[data-callout="bookmark-preview"] .callout-title {
@@ -1331,6 +1343,10 @@
 
 .markdown-preview-view .callout[data-callout="bookmark-tags"] .callout-title {
   color: #8b5b12;
+}
+
+.markdown-preview-view .callout[data-callout="bookmark-content"] .callout-title {
+  color: #146562;
 }
 
 @media (max-width: 900px) {
