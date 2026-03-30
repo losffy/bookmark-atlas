@@ -2,6 +2,8 @@
 
 Bookmark Atlas is an Obsidian community plugin for importing Chrome and Firefox bookmarks into curated notes.
 
+中文简介：Bookmark Atlas 是一个 Obsidian 社区插件，用于把 Chrome 和 Firefox 书签导入为结构化笔记，并提供预览、搜索和正文提取能力。
+
 ## Features
 
 - Import Chrome/Firefox exported HTML bookmarks
