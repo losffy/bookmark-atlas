@@ -65,6 +65,63 @@ npm run build
 - `Bookmarks/Assets/Screenshots/`
 - `Bookmarks/Assets/Previews/`
 
+### 命令说明
+
+- `Import Bookmarks`
+  导入浏览器书签。
+- `Open Bookmark Atlas`
+  打开 Bookmark Atlas 侧边面板。
+- `Rebuild Bookmark Summary Indexes`
+  重建书签汇总索引。
+- `Resync Imported Bookmarks`
+  重新同步已导入的书签。
+- `Open Latest Bookmark Summary`
+  打开最近一次导入生成的汇总笔记。
+
+### 开发说明
+
+在项目目录执行：
+
+```bash
+npm install
+npm run build
+```
+
+常用脚本：
+
+- `npm run dev`
+- `npm run refresh-articles`
+- `npm run smoke-test`
+- `npm run refresh-previews`
+- `npm run release`
+
+如果你要维护一个公开仓库，建议保留这些核心内容：
+
+- `src/`
+- `scripts/`
+- `test-fixtures/`
+- `manifest.json`
+- `versions.json`
+- `package.json`
+- `README.md`
+- `LICENSE`
+- `.gitignore`
+
+不建议提交：
+
+- `data.json`
+- 仓库中生成的书签数据
+- 本地测试 vault 数据
+- `release/`
+- `node_modules/`
+
+### 备注
+
+- 这是一个仅桌面端可用的插件。
+- 本地截图和预览生成依赖桌面文件访问与本地浏览器自动化能力。
+- 基于 Defuddle 的正文提取依赖远程 HTML 获取，更适合文章页、博客、文档和可读性较高的落地页。
+- `data.json` 属于用户数据，不应作为发布包的一部分。
+
 ## Features
 
 - Import Chrome/Firefox exported HTML bookmarks
