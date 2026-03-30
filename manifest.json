@@ -3,7 +3,7 @@
   "name": "Bookmark Atlas",
   "version": "0.2.0",
   "minAppVersion": "1.6.0",
-  "description": "Import Chrome and Firefox bookmarks into curated Obsidian notes with previews, search, and Defuddle-powered article extraction.",
+  "description": "Import Chrome and Firefox bookmarks into curated Obsidian notes with previews, search, and Defuddle-powered article extraction. 中文：将 Chrome 和 Firefox 书签导入为带预览、搜索和正文提取的 Obsidian 结构化笔记。",
   "author": "losffy",
   "isDesktopOnly": true
 }
