@@ -4,6 +4,67 @@ Bookmark Atlas is an Obsidian community plugin for importing Chrome and Firefox 
 
 中文简介：Bookmark Atlas 是一个 Obsidian 社区插件，用于把 Chrome 和 Firefox 书签导入为结构化笔记，并提供预览、搜索和正文提取能力。
 
+## 中文说明
+
+### 主要功能
+
+- 导入 Chrome / Firefox 导出的 HTML 书签
+- 导入 Chrome `Bookmarks` JSON
+- 规范化并去重书签记录
+- 每次导入生成一份汇总笔记
+- 为每条书签生成单独的详情笔记
+- 在 Obsidian 内构建可搜索的侧边面板
+- 把网页本地预览图保存到仓库
+- 当实时截图不可用时回退到本地预览卡片
+- 使用 Defuddle 提取可读页面正文并写入书签详情笔记
+
+### 安装方法
+
+#### 从 Release 安装
+
+1. 从 [GitHub Releases](https://github.com/losffy/bookmark-atlas/releases) 下载 `bookmark-atlas-<version>.zip`。
+2. 解压压缩包。
+3. 将解压后的 `bookmark-atlas` 文件夹复制到你的仓库插件目录：
+   `.obsidian/plugins/bookmark-atlas/`
+4. 打开 Obsidian。
+5. 如果需要，关闭 Restricted mode。
+6. 进入 `Settings -> Community plugins`。
+7. 启用 `Bookmark Atlas`。
+
+插件目录中至少应包含：
+
+- `manifest.json`
+- `main.js`
+- `styles.css`
+
+#### 从源码手动安装
+
+1. 在项目目录执行：
+
+```bash
+npm install
+npm run build
+```
+
+2. 将这些文件复制到 `.obsidian/plugins/bookmark-atlas/`：
+
+- `manifest.json`
+- `main.js`
+- `styles.css`
+- `versions.json`
+
+3. 在 Obsidian 的 Community Plugins 中启用插件。
+
+### 默认数据目录
+
+默认情况下，插件会写入：
+
+- `Bookmarks/Atlas.md`
+- `Bookmarks/Imports/`
+- `Bookmarks/Items/`
+- `Bookmarks/Assets/Screenshots/`
+- `Bookmarks/Assets/Previews/`
+
 ## Features
 
 - Import Chrome/Firefox exported HTML bookmarks
